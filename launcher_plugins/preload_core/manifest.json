@@ -1,0 +1,14 @@
+{
+  "name": "preload_core",
+  "priority": 10,
+  "stage": "preload",
+  "modules": [
+    "PyQt5.QtWebEngineCore",
+    "PyQt5.QtWebEngineWidgets",
+    "PyQt5.QtWebEngine"
+  ],
+  "warmup": {
+    "qt_files": true,
+    "limit": 250
+  }
+}

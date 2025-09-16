@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Salem CleanStream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/popup.css" />
+</head>
+<body>
+  <header class="head">
+    <img src="Assets/video-booster.png" alt="logo" class="logo" />
+    <div class="tit">
+      <div class="name">Salem CleanStream</div>
+      <div class="muted">Реклама: off. Видео: чисто.</div>
+    </div>
+  </header>
+
+  <main class="card">
+    <label class="row switch">
+      <input type="checkbox" id="toggle-global" />
+      <span>Включено</span>
+    </label>
+
+    <div class="hr"></div>
+
+    <div class="row">
+      <div class="grow">
+        <div class="lbl">Текущий сайт</div>
+        <div class="muted" id="site-host">—</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggle-site" />
+        <span>Блокировать</span>
+      </label>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="rowsm">
+      <div class="muted">Блокировок (вкладка): <b id="stat-tab">0</b></div>
+      <div class="muted">Всего за сессию: <b id="stat-total">0</b></div>
+    </div>
+
+    <div class="rowsm actions">
+      <button id="btn-reset" class="btn">Сбросить счётчики</button>
+      <button id="btn-reload" class="btn">Перезагрузить вкладку</button>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <a href="https://github.com/" target="_blank" rel="noreferrer">Документация</a>
+  </footer>
+
+  <script src="js/popup.js"></script>
+</body>
+</html>

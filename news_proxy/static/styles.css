@@ -1,0 +1,134 @@
+/* === NEWS IMAGE FIX === */
+
+/* Герой-карта: не тянем высоту от нулевого контейнера */
+.news-hero-card .news-edge-img{
+  display:block;
+  width:100%;
+  height:auto;                 /* <— вместо height:100% */
+  aspect-ratio: 16 / 9;        /* держим форму */
+  max-height:380px;
+  object-fit:cover;
+  border-radius:12px;
+  opacity:1;                   /* <— изображение видно по умолчанию */
+  transition:opacity .18s ease-in;
+  background:#f1f1f5;          /* лёгкий плейсхолдер */
+}
+
+/* Обычные карточки — та же логика */
+.news-edge-card .news-edge-img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio: 16 / 9;
+  object-fit:cover;
+  border-radius:12px;
+  opacity:1;
+  transition:opacity .18s ease-in;
+  background:#f1f1f5;
+}
+
+/* Новости — стабильная высота превью */
+.news-edge-card .img-wrap,
+.news-hero-card .img-wrap{
+  display:block;
+  width:100%;
+}
+
+.news-edge-img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio: 16 / 9;      /* современно и надёжно */
+  object-fit: cover;
+  background:#eef1f5;        /* видно плейсхолдер */
+}
+
+/* если aspect-ratio не поддерживается (старые движки) */
+@supports not (aspect-ratio: 1 / 1){
+  .news-edge-img{ min-height: 140px; }
+  .news-hero-card .news-edge-img{ min-height: 220px; }
+}
+
+
+
+/* === NEWS SLIDER — базовая геометрия и поведение === */
+.news-slider{
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 18px auto 24px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(20,20,28,.6);
+  backdrop-filter: blur(3px);
+}
+
+.news-slider .slider-viewport{
+  overflow: hidden;
+  width: 100%;
+  height: clamp(220px, 28vw, 420px);
+}
+
+.news-slider .slider-track{
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  will-change: transform;
+  transition: transform .35s ease-out;
+}
+
+.news-slider .slide{
+  min-width: 100%;
+  position: relative;
+  height: 100%;
+}
+
+.news-slider .slide a{
+  display:block; width:100%; height:100%;
+  color: inherit; text-decoration: none;
+}
+
+.news-slider .slide img{
+  width:100%; height:100%;
+  object-fit: cover; display:block;
+}
+
+.news-slider .slide .slide-caption{
+  position:absolute; left:0; right:0; bottom:0;
+  padding:14px 16px 16px;
+  background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.6) 100%);
+  color:#fff; font-weight:600; line-height:1.3;
+}
+
+/* стрелки */
+.news-slider .slider-btn{
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:40px; height:40px; border:0; border-radius:10px;
+  background:rgba(0,0,0,.35);
+  color:#fff; font-size:22px; cursor:pointer;
+  display:grid; place-items:center;
+  transition: background .2s ease;
+}
+.news-slider .slider-btn:hover{ background:rgba(0,0,0,.55); }
+.news-slider .slider-btn.prev{ left:10px; }
+.news-slider .slider-btn.next{ right:10px; }
+
+/* точки */
+.news-slider .slider-dots{
+  position:absolute; left:0; right:0; bottom:10px;
+  display:flex; gap:8px; justify-content:center;
+}
+.news-slider .slider-dots .dot{
+  width:8px; height:8px; border-radius:99px;
+  background:rgba(255,255,255,.45); cursor:pointer;
+  transition: all .2s ease;
+}
+.news-slider .slider-dots .dot.active{
+  width:22px; background:#fff;
+}
+
+/* адаптивность */
+@media (max-width: 720px){
+  .news-slider .slider-viewport{ height: clamp(180px, 40vw, 280px); }
+}
+

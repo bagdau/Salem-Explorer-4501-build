@@ -1,0 +1,36 @@
+<button id="clockFab" class="slmclk-fab" title="Часы (Alt+C)" aria-label="Открыть часы">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div id="clockModal" class="slmclk-modal" aria-hidden="true" role="dialog" aria-label="Часы" style="
+    margin-top: 297px;
+    left: 890.003;
+    margin-left: 923px;
+    top: 301.389;
+">
+        <div class="slmclk-card" id="slmCard" role="document">
+          <div class="slmclk-head" id="dragHandle">
+            <span>Часы</span>
+            <button id="clockClose" class="slmclk-close" aria-label="Закрыть">×</button>
+          </div>
+        
+          <div class="slmclk-body">
+            <div class="slmclk-dial" id="salemClock" style="--size: 220px;">
+              <div class="slmclk-face">
+                <div class="slmclk-hand hour"></div>
+                <div class="slmclk-hand minute"></div>
+                <div class="slmclk-hand second"></div>
+                <div class="slmclk-cap"></div>
+              </div>
+            </div>
+          
+            <div class="slmclk-digital">
+              <div id="slmTime" class="slmclk-time">00:00:00</div>
+              <div id="slmDate" class="slmclk-date">—</div>
+            </div>
+          </div>
+        </div>
+      </div>

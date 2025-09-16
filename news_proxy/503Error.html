@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>503 — Қызмет уақытша қолжетімсіз</title>
+  <style>
+    :root{
+      --bg:#0b0e15;
+      --accent:#07fff3;
+      --accent2:#ff007c;
+      --card:#12182a;
+      --muted:#a9b4d6;
+      --border:#27314a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; display:flex; align-items:center; justify-content:center;
+      background: conic-gradient(from 210deg at 20% 10%, #0f1629, #0b0e15, #161f36), var(--bg);
+      color:#fff; font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    }
+    .card{
+      width:min(900px,94vw);
+      background:linear-gradient(145deg,#141a2e,#0f1426);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:28px;
+      box-shadow:0 10px 50px rgba(7,255,243,.14), inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    .code{
+      font-size: clamp(56px, 12vw, 140px);
+      font-weight:900; line-height:.85;
+      margin:0; letter-spacing:.02em;
+      color:#e8fafe; text-shadow:0 0 18px rgba(7,255,243,.25);
+    }
+    h1{margin:.1em 0 .4em; font-weight:800; color:var(--accent)}
+    .lead{color:#c7d2ff; margin:.2em 0 1.2em; font-size:1.06rem}
+    .status{
+      display:grid; gap:10px; grid-template-columns:1fr 1fr;
+      background:#0f1424; border:1px solid #23304b; border-radius:12px; padding:12px 14px; margin:0 0 14px
+    }
+    .status div{color:#c7d2ff; font-size:.96rem}
+    .status b{color:#88f6ff; font-weight:600}
+    .bar{height:12px; background:#11172a; border:1px solid #2a3552; border-radius:999px; overflow:hidden; margin:10px 0 6px}
+    .bar > i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent2),var(--accent)); box-shadow:0 6px 24px rgba(7,255,243,.25)}
+    .actions{display:flex; flex-wrap:wrap; gap:12px}
+    .btn, button{
+      background:linear-gradient(90deg, var(--accent2), var(--accent)); border:none; color:#04121b;
+      padding:11px 16px; border-radius:10px; font-weight:700; cursor:pointer;
+      box-shadow:0 6px 24px rgba(7,255,243,.22); transition:transform .08s ease;
+      text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn:hover, button:hover{ transform:translateY(-1px) }
+    .secondary{ background:#1c2239; color:#cbe9ff; border:1px solid #2f3c5e; box-shadow:none }
+    .hint{color:var(--muted); font-size:.9rem; margin-top:8px}
+  </style>
+</head>
+<body>
+  <main class="card" role="main" aria-labelledby="title">
+    <p class="code" aria-hidden="true">503</p>
+    <h1 id="title">Қызмет уақытша қолжетімсіз</h1>
+    <p class="lead">Серверде техникалық жұмыс жүріп жатыр немесе жүктеме жоғары. Бет автоматты түрде жаңартылады.</p>
+
+    <section class="status" aria-label="Күй">
+      <div><b>Сілтеме (URL):</b> <span id="s-url"></span></div>
+      <div><b>Желі күйі:</b> <span id="s-online"></span></div>
+      <div><b>Қайталап көру арқылы:</b> <span id="s-count">—</span> сек.</div>
+      <div><b>Сервер денсаулығы:</b> <span id="s-health">тексеру…</span></div>
+    </section>
+
+    <div class="bar" aria-label="Жаңарту прогресі"><i id="barfill"></i></div>
+
+    <div class="actions">
+      <button id="tryNow">Қазір көру</button>
+      <a class="btn secondary" href="http://127.0.0.1:5000" id="home">Басты бет</a>
+    </div>
+    <div class="hint">Кеңес: бетті жаппаңыз — таймер біткен соң бет өзі жаңарады.</div>
+  </main>
+
+  <script>
+    (function(){
+      const qs = new URLSearchParams(location.search);
+      const retry = Math.max(3, Math.min(60, Number(qs.get("retry")||10))); // 3..60 сек
+      const urlEl = document.getElementById("s-url");
+      const onlEl = document.getElementById("s-online");
+      const cEl   = document.getElementById("s-count");
+      const hEl   = document.getElementById("s-health");
+      const bar   = document.getElementById("barfill");
+
+      urlEl.textContent = location.href;
+      onlEl.textContent = navigator.onLine ? "иә" : "жоқ";
+
+      async function ping(){
+        try{
+          const r = await fetch("/health", {cache:"no-store"});
+          if(r.ok){
+            hEl.textContent = "OK";
+            hEl.style.color = "#7CFFC4";
+          }else{
+            hEl.textContent = "қате " + r.status;
+            hEl.style.color = "#FFD991";
+          }
+        }catch(e){
+          hEl.textContent = "қолжетімсіз";
+          hEl.style.color = "#ffb0c8";
+        }
+      }
+      ping();
+
+      let left = retry, total = retry;
+      cEl.textContent = left.toString();
+      bar.style.width = "0%";
+      const t = setInterval(()=>{
+        left -= 1;
+        cEl.textContent = left.toString();
+        const pct = Math.round(100*(total-left)/total);
+        bar.style.width = pct + "%";
+        if(left <= 0){
+          clearInterval(t);
+          location.reload();
+        }
+      }, 1000);
+
+      document.getElementById("tryNow").onclick = ()=> location.reload();
+      window.addEventListener("online", ()=> onlEl.textContent = "иә");
+      window.addEventListener("offline",()=> onlEl.textContent = "жоқ");
+    })();
+  </script>
+</body>
+</html>

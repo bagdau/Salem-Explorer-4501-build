@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="utf-8">
+  <title>Профиль/Вход — Salem Explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="img/icons/SalemIconUpdatedIcon.jpg">
+  <link rel="stylesheet" href="account_ui.css">
+</head>
+<body>
+  <div class="account-container">
+    <button class="back-btn" title="Назад" onclick="history.back()">&larr;</button>
+    <button class="theme-toggle" id="theme-toggle" title="Переключить тему" style="font-size: 26px;">◌</button>
+
+    <!-- Профиль -->
+    <div id="profile-section" class="hidden">
+      <label for="avatar-upload">
+        <img src="" alt="Профиль" class="profile-avatar" id="profile-avatar">
+        <div class="avatar-upload-label">Изменить аватар</div>
+      </label>
+      <input type="file" id="avatar-upload" accept="image/*">
+      <form class="profile-form" id="profile-form" autocomplete="off">
+        <input type="text" id="profile-name" placeholder="Имя" required>
+        <input type="email" id="profile-email" placeholder="Email" required>
+        <input type="text" id="profile-role" placeholder="Роль">
+        <input type="text" id="profile-location" placeholder="Локация">
+        <select id="profile-lang">
+          <option value="kk">Қазақша</option>
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+        </select>
+        <button type="submit">Сохранить профиль</button>
+      </form>
+      <div class="profile-actions">
+        <a href="#" id="mailto-link">Связаться по почте</a>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+      </div>
+    </div>
+
+    <!-- Вход -->
+    <div id="login-section" class="hidden">
+      <form class="login-form" id="login-form" autocomplete="off">
+        <input type="email" id="login-email" placeholder="Email" required>
+        <input type="password" id="login-password" placeholder="Пароль" required>
+        <button type="submit">Войти</button>
+      </form>
+      <div class="login-actions">
+        <button class="toggle-link" onclick="showSection('register')">Нет аккаунта? Зарегистрироваться</button>
+      </div>
+      <div class="oauth-row">
+        <button class="oauth-btn" title="Google" onclick="oauthLogin('Google')">
+          <img src="img/icons/google.png" alt="Google" style="width:24px;height:24px;">
+        </button>
+        <button class="oauth-btn" title="Microsoft" onclick="oauthLogin('Microsoft')">
+          <img src="img/icons/microsoft.png" alt="MS" style="width:24px;height:24px;">
+        </button>
+        <button class="oauth-btn" title="Discord" onclick="oauthLogin('Discord')">
+          <img src="img/icons8-discord-100.png" alt="Discord" style="width:24px;height:24px;">
+        </button>
+      </div>
+    </div>
+
+    <!-- Регистрация -->
+    <div id="register-section" class="hidden">
+      <form class="register-form" id="register-form" autocomplete="off">
+        <input type="text" id="reg-name" placeholder="Имя" required>
+        <input type="email" id="reg-email" placeholder="Email" required>
+        <input type="password" id="reg-password" placeholder="Пароль" required>
+        <button type="submit">Зарегистрироваться</button>
+      </form>
+      <div class="register-actions">
+        <button class="toggle-link" onclick="showSection('login')">Уже есть аккаунт? Войти</button>
+      </div>
+      <div class="oauth-row">
+        <button class="oauth-btn" title="Google" onclick="oauthLogin('Google')">
+          <img src="img/icons/google.png" alt="Google" style="width:24px;height:24px;">
+        </button>
+        <button class="oauth-btn" title="Microsoft" onclick="oauthLogin('Microsoft')">
+          <img src="img/icons/microsoft.png" alt="MS" style="width:24px;height:24px;">
+        </button>
+        <button class="oauth-btn" title="Discord" onclick="oauthLogin('Discord')">
+          <img src="img/icons8-discord-100.png" alt="Discord" style="width:24px;height:24px;">
+        </button>
+      </div>
+    </div>
+  </div>
+ <script src="account.js" defer></script>
+</body>
+</html>

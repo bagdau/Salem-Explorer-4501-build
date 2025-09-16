@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Analog Clock • Modal</title>
+<style>
+  :root{
+    --face:#8d9499;           /* серый циферблат */
+    --ring:#e9edf1;           /* светлое кольцо/ободок */
+    --tick:#1f252b;           /* риски */
+    --hand:#0d1115;           /* час/минут стрелки */
+    --sec:#ff6a00;            /* секундная */
+    --shadow: 0 4px 18px rgba(0,0,0,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial}
+  body{
+    background:#0f141a;
+    color:#e6eaee;
+    display:grid;
+    place-items:center;
+    padding:24px;
+  }
+
+  /* Кнопка вызова часов */
+  .open-btn{
+    padding:10px 16px;border-radius:10px;border:1px solid #334250;
+    background:#1b2430;color:#e6eaee;cursor:pointer;
+    box-shadow: var(--shadow);
+    transition:transform .08s ease;
+  }
+  .open-btn:active{transform:translateY(1px)}
+
+  /* Модальное окно */
+  .modal{
+    position:fixed;inset:0;display:none;
+    align-items:center;justify-content:center;
+    background:rgba(0,0,0,.45);backdrop-filter:saturate(1.2) blur(6px);
+    padding:24px;
+  }
+  .modal[open]{display:flex}
+  .sheet{
+    width:min(92vw, 420px);
+    background:#151b22;border:1px solid #2c3948;border-radius:16px;
+    box-shadow: var(--shadow);
+  }
+  .sheet-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 14px;border-bottom:1px solid #2c3948;
+  }
+  .x{
+    width:32px;height:32px;border-radius:10px;border:1px solid #314153;
+    background:#1a2330;color:#c9d3dc;cursor:pointer;
+  }
+  .sheet-body{padding:18px 18px 22px;display:grid;place-items:center}
+
+  /* Часы */
+  .clock{
+    position:relative;
+    width:min(78vmin, 340px);
+    aspect-ratio:1/1;
+    border-radius:50%;
+    background:
+      radial-gradient(120% 120% at 35% 30%, rgba(255,255,255,.10), transparent 50%),
+      var(--face);
+    border:10px solid var(--ring);
+    box-shadow:
+      inset 0 0 0 2px rgba(0,0,0,.08),
+      inset 0 0 0 4px rgba(255,255,255,.04),
+      0 12px 22px rgba(0,0,0,.25);
+  }
+
+  /* Риски (создаём из JS) */
+  .tick{
+    position:absolute;left:50%;top:50%;
+    transform-origin:center;
+  }
+  .tick i{
+    display:block;margin-left:-1px;
+    width:2px;height:10px;border-radius:2px;background:var(--tick);opacity:.9;
+  }
+  .tick.hour i{ width:4px;height:18px;margin-left:-2px; opacity:1; }
+
+  /* Стрелки */
+  .hand{
+    position:absolute;left:50%;top:50%;
+    transform-origin:bottom center;
+    transform:translate(-50%, -100%) rotate(0deg);
+  }
+  .hand.hour   { width:8px;height:28%; background:var(--hand); border-radius:8px; }
+  .hand.minute { width:6px;height:38%; background:var(--hand); border-radius:6px; }
+  .hand.second { width:2.5px;height:42%; background:var(--sec);  border-radius:2px; }
+
+  /* Хаб по центру */
+  .pin, .pin:after{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    border-radius:50%;
+  }
+  .pin{
+    width:14px;height:14px;background:var(--sec);
+    box-shadow:0 0 0 3px #131820, 0 0 0 7px rgba(0,0,0,.15) inset;
+  }
+  .pin:after{
+    content:"";width:6px;height:6px;background:#131820;
+  }
+
+  /* Подпись (необязательно) */
+  .brand{
+    position:absolute;left:50%;top:67%;transform:translateX(-50%);
+    font-size:12px;letter-spacing:.06em;color:#111a22;opacity:.45;
+    user-select:none;
+  }
+</style>
+</head>
+<body>
+  <button class="open-btn" id="openClock">🕒 Показать часы</button>
+
+  <dialog class="modal" id="modal">
+    <div class="sheet" role="dialog" aria-label="Аналоговые часы">
+      <div class="sheet-header">
+        <div style="font-weight:600">Часы</div>
+        <button class="x" id="closeClock" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="sheet-body">
+        <div class="clock" id="clock">
+          <!-- стрелки -->
+          <div class="hand hour"   id="hourHand"></div>
+          <div class="hand minute" id="minHand"></div>
+          <div class="hand second" id="secHand"></div>
+          <div class="pin"></div>
+          <div class="brand">Salem</div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+<script>
+(() => {
+  const modal    = document.getElementById('modal');
+  const openBtn  = document.getElementById('openClock');
+  const closeBtn = document.getElementById('closeClock');
+  const clock    = document.getElementById('clock');
+
+  const hourHand = document.getElementById('hourHand');
+  const minHand  = document.getElementById('minHand');
+  const secHand  = document.getElementById('secHand');
+
+  let rafId = null;
+
+  // --- Риски (60, каждый 5-й – часовой) ---
+  function buildTicks(){
+    // очистить старые (при ресайзе)
+    clock.querySelectorAll('.tick').forEach(n => n.remove());
+
+    const rect = clock.getBoundingClientRect();
+    const R = rect.width / 2 - 16;        // радиус для позиционирования рисок
+    const short = 10, long = 18;
+
+    for(let i=0;i<60;i++){
+      const tick = document.createElement('div');
+      tick.className = 'tick' + (i%5===0 ? ' hour' : '');
+      const bar = document.createElement('i');
+      tick.appendChild(bar);
+
+      const angle = i*6; // 360/60
+      const len   = (i%5===0 ? long : short);
+      // Сместим «палочку» к краю
+      tick.style.transform =
+        `rotate(${angle}deg) translateY(${-R}px)`;
+      bar.style.height = len + 'px';
+      // Чуть сдвигаем, чтобы риска упиралась в край
+      bar.style.transform = `translateY(${-(len/2)}px)`;
+      clock.appendChild(tick);
+    }
+  }
+
+  // --- Плавный ход (requestAnimationFrame), без дрейфа ---
+  function update(){
+    const now = new Date();
+    const ms  = now.getMilliseconds();
+    const s   = now.getSeconds() + ms/1000;
+    const m   = now.getMinutes() + s/60;
+    const h   = (now.getHours()%12) + m/60;
+
+    const secAngle  = s * 6;            // 360/60
+    const minAngle  = m * 6;
+    const hourAngle = h * 30;           // 360/12
+
+    secHand.style.transform  = `translate(-50%, -100%) rotate(${secAngle}deg)`;
+    minHand.style.transform  = `translate(-50%, -100%) rotate(${minAngle}deg)`;
+    hourHand.style.transform = `translate(-50%, -100%) rotate(${hourAngle}deg)`;
+
+    rafId = requestAnimationFrame(update);
+  }
+
+  // --- Управление модалкой ---
+  function open(){
+    modal.setAttribute('open','');
+    buildTicks();
+    cancelAnimationFrame(rafId);
+    update();
+  }
+  function close(){
+    modal.removeAttribute('open');
+    cancelAnimationFrame(rafId);
+  }
+
+  openBtn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  modal.addEventListener('click', (e) => {
+    // клик по подложке закрывает
+    if(e.target === modal) close();
+  });
+  window.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && modal.hasAttribute('open')) close();
+  });
+  window.addEventListener('resize', () => {
+    if(modal.hasAttribute('open')) buildTicks();
+  });
+
+  // можно сразу показать при загрузке — раскомментируй строку ниже
+  // open();
+})();
+</script>
+</body>
+</html>

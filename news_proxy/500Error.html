@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>500 — Ішкі сервер қатесі</title>
+  <style>
+    :root{
+      --bg:#0b0e15;
+      --accent:#07fff3;
+      --accent2:#ff007c;
+      --card:#12172a;
+      --muted:#a9b4d6;
+      --border:#27314a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; display:flex; align-items:center; justify-content:center;
+      background: radial-gradient(1200px 800px at 20% -10%, #162238 0%, transparent 60%),
+                  radial-gradient(1200px 800px at 120% 110%, #121a30 0%, transparent 55%),
+                  var(--bg);
+      color:#fff; font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    }
+    .card{
+      width:min(900px,94vw);
+      background:linear-gradient(145deg,#12172a,#0f1527);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:28px;
+      box-shadow: 0 10px 50px rgba(7,255,243,.14), inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    .code{
+      font-size: clamp(56px, 12vw, 140px);
+      font-weight:900; line-height:.85;
+      margin:0; letter-spacing:.02em;
+      color:#e8fafe; text-shadow:0 0 18px rgba(7,255,243,.25);
+    }
+    h1{margin:.1em 0 .4em; font-weight:800; color:var(--accent)}
+    .lead{color:#c7d2ff; margin:.2em 0 1.2em; font-size:1.06rem}
+    .meta{
+      display:grid; gap:10px; grid-template-columns:1fr 1fr;
+      background:#0f1526; border:1px solid #23304b; border-radius:12px; padding:12px 14px; margin:0 0 14px;
+    }
+    .meta div{color:#c7d2ff; font-size:.96rem}
+    .meta b{color:#88f6ff; font-weight:600}
+    .errbox{display:none; background:#181225; border:1px solid #3a294a; border-radius:10px; padding:10px 12px; margin:0 0 16px}
+    .errbox b{color:#ff9ac4}
+    pre{margin:8px 0 0; white-space:pre-wrap; word-break:break-word; color:#ffd7e9}
+    .actions{display:flex; flex-wrap:wrap; gap:12px}
+    .btn, button{
+      background:linear-gradient(90deg, var(--accent2), var(--accent));
+      border:none; color:#04121b;
+      padding:11px 16px; border-radius:10px; font-weight:700; cursor:pointer;
+      box-shadow:0 6px 24px rgba(7,255,243,.22);
+      text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+      transition:transform .08s ease;
+    }
+    .btn:hover, button:hover{ transform:translateY(-1px) }
+    .secondary{ background:#1b2239; color:#cbe9ff; border:1px solid #2f3c5e; box-shadow:none }
+    .note{color:#96a6cc; font-size:.9rem; margin-top:10px}
+  </style>
+</head>
+<body>
+  <main class="card" role="main" aria-labelledby="title">
+    <p class="code" aria-hidden="true">500</p>
+    <h1 id="title">Ішкі сервер қатесі</h1>
+    <p class="lead">Сервер сұрауды өңдеу барысында қате тіркелді. Бұл уақытша болуы мүмкін, бірақ назар қажет.</p>
+
+    <section class="meta" aria-label="Мәлімет">
+      <div><b>Сілтеме (URL):</b> <span id="m-url"></span></div>
+      <div><b>Уақыты:</b> <span id="m-time"></span></div>
+      <div><b>Желі күйі:</b> <span id="m-online"></span></div>
+      <div><b>Request-ID:</b> <span id="m-rid">—</span></div>
+    </section>
+
+    <section id="errbox" class="errbox" aria-label="Қате туралы хабарлама">
+      <b>Қате хабарламасы:</b>
+      <pre id="errmsg"></pre>
+    </section>
+
+    <div class="actions">
+      <button id="reload">Қайта жүктеу</button>
+      <button id="back"  class="secondary">Артқа</button>
+      <a class="btn secondary" href="http://127.0.0.1:5000" id="home">Басты бет</a>
+    </div>
+    <p class="note">Егер қате қайталанса, әкімшіге хабарласыңыз немесе журналдарды (logs) тексеріңіз.</p>
+  </main>
+
+  <script>
+    (function(){
+      const qs = new URLSearchParams(location.search);
+      const rid = qs.get("rid");
+      const msg = qs.get("msg");
+      document.getElementById("m-url").textContent = location.href;
+      document.getElementById("m-time").textContent = new Date().toLocaleString("kk-KZ");
+      document.getElementById("m-online").textContent = navigator.onLine ? "иә" : "жоқ";
+      if (rid) document.getElementById("m-rid").textContent = rid;
+      if (msg){
+        const box = document.getElementById("errbox");
+        box.style.display = "block";
+        document.getElementById("errmsg").textContent = msg;
+      }
+      document.getElementById("reload").onclick = () => location.reload();
+      document.getElementById("back").onclick   = () => history.length > 1 ? history.back() : (location.href = "/");
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "preload_media",
+  "priority": 50,
+  "stage": "background",
+  "modules": [
+    "PyQt5.QtWebEngineCore",
+    "PyQt5.QtWebEngineWidgets",
+    "MediaHub.mediahub_server",
+    "news_proxy.server"
+  ],
+  "start_servers": true,
+  "mediahub": { "host": "127.0.0.1", "port": 7000 },
+  "news_proxy": { "host": "127.0.0.1", "port": 5000 },
+  "warmup": {
+    "paths": [
+      "MediaHub/static",
+      "MediaHub/IconsStartPage",
+      "news_proxy/static",
+      "news_proxy/img",
+      "news_proxy/wallpapers"
+    ],
+    "limit": 300
+  }
+}

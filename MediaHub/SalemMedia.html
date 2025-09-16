@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>SalemMedia v80 — Media Hub + Editor</title>
+  <link rel="icon" href="MediaHub/IconsStartPage/music.png">
+
+  <!-- Вьюеры (по требованию используем) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.1.0/mammoth.browser.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pptxjs@3.3.0/dist/pptxjs.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.7.1/dist/jszip.min.js"></script>
+  <link  href="https://cdn.jsdelivr.net/npm/pptxjs@3.3.0/dist/pptxjs.css" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --bg:#13151c;--panel:#171a25;--panel2:#1d2030;--border:#232741;
+      --fg:#eaeaea;--muted:#9fb0cf;--accent:#52f2c9;--accent2:#57e0ff;--warn:#ffca90;--err:#ff8080;--ok:#5cf3a6;
+      --chip:#0f1423;--chip2:#19213a;--neon:0 0 0 3px #13e4e455, 0 6px 22px #009ba222;
+    }
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:Segoe UI,Roboto,Arial,sans-serif;overflow:hidden}
+    .app{display:flex;height:100%;width:100%}
+    .sidebar{
+      width:240px;min-width:210px;background:linear-gradient(180deg,var(--panel),#121420);
+      border-right:1px solid var(--border);display:flex;flex-direction:column;gap:10px;padding:18px 12px 14px;z-index:3
+    }
+    .logo{font-weight:800;letter-spacing:1.5px;color:#53fff4;text-shadow:0 4px 16px #16ffb9,0 2px 8px #0044ff;margin:6px 6px 14px}
+    .toolrow{display:flex;gap:8px;align-items:center;margin:0 6px 10px}
+    .toolrow .btn{flex:1}
+    .btn{
+      background:#2026e8;border:1px solid #2a3bff33;color:#fff;border-radius:10px;padding:10px 12px;cursor:pointer;
+      box-shadow:0 6px 18px #2a46e866;transition:transform .12s,box-shadow .12s,background .12s;font-weight:600
+    }
+    .btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px #2a46e888}
+    .btn.secondary{background:#1f2537;border-color:#30395f;color:#bfe9ff}
+    .btn.ghost{background:#121522;border:1px solid var(--border);color:#bfe9ff}
+    .btn.warn{background:#7a2e00;border-color:#9c4606;color:#ffd3b0}
+    .btn.ok{background:#0c5735;border-color:#118e5a;color:#caffee}
+    .section-btn{
+      border:none;background:none;color:#a6adff;text-align:left;border-radius:12px;padding:10px 12px;font-size:1.05rem;cursor:pointer;
+      transition:background .15s,color .15s,transform .12s;margin:2px 6px
+    }
+    .section-btn:hover,.section-btn.active{background:#1e2035;color:var(--accent2);font-weight:700;transform:translateX(6px) scale(1.04)}
+    .split{flex:1;display:flex;overflow:hidden}
+    .list{
+      width:420px;background:var(--panel2);border-right:1px solid var(--border);overflow:auto;padding:16px 14px 120px;position:relative
+    }
+    .list-header{display:flex;gap:8px;align-items:center;margin:2px 2px 10px}
+    .input,.select{
+      background:#0f1423;border:1px solid #273054;color:#cfe6ff;border-radius:10px;padding:9px 10px;outline:none;min-height:16px
+    }
+    .input:focus,.select:focus{box-shadow:var(--neon)}
+    .badge{background:#101631;color:#84f3ff;border:1px solid #1b2c57;border-radius:8px;padding:3px 8px;margin-left:auto;font-size:.88rem}
+    .card{
+      display:flex;gap:12px;align-items:center;background:#222642c4;border:1px solid transparent;border-radius:12px;padding:12px;margin:8px 2px;
+      cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s
+    }
+    .card:hover{transform:translateY(-1px);box-shadow:var(--neon);background:#283054e0;border-color:#2b3a66}
+    .thumb{width:60px;height:60px;background:#2a2e47;border-radius:10px;object-fit:cover;box-shadow:0 2px 8px #111}
+    .meta{flex:1 1 auto}
+    .title{font-weight:700;color:#d8fcff}
+    .desc{color:#9db1cf;font-size:.95rem;margin-top:3px}
+    .chip{background:var(--chip);border:1px solid #2b3358;color:#84f3ff;border-radius:8px;padding:2px 8px;font-size:.86rem;margin-right:6px}
+    .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .panel{
+      flex:1;background:linear-gradient(180deg,#131722,#0d111b);padding:22px 24px 140px;overflow:auto;position:relative
+    }
+    .section-title{color:var(--accent);font-weight:800;letter-spacing:1px;margin:4px 0 12px}
+    video.media, audio.media{width:98%;max-width:980px;background:#242944;border-radius:14px;box-shadow:0 6px 28px #00e8ff18}
+    #img-view{max-width:980px;max-height:70vh;border-radius:14px;box-shadow:0 2px 18px #29e9ee2a}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+    .switch{display:flex;align-items:center;gap:8px;font-size:.95rem;color:#a7c6ff}
+    .switch input{accent-color:#57e0ff}
+    .sticky-bottom{
+      position:fixed;left:240px;right:0;bottom:0;background:#0f1321d9;border-top:1px solid var(--border);display:flex;gap:12px;align-items:center;padding:10px 14px;backdrop-filter:blur(12px)
+    }
+    .sticky-bottom .mini{display:flex;align-items:center;gap:10px;color:#bfe2ff}
+    .mini img{width:32px;height:32px;border-radius:6px;background:#233}
+    /* Модалки */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(8,12,20,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:10}
+    .modal{width:min(880px,96vw);max-height:88vh;overflow:auto;background:#0e1321;border:1px solid var(--border);border-radius:14px;box-shadow:0 24px 80px #000a; padding:16px}
+    .modal h3{margin:6px 0 12px;color:#6ef7ff}
+    .modal .row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+    .modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+    .close-x{margin-left:auto;background:none;border:none;color:#9ac9ff;font-size:1.2rem;cursor:pointer}
+    /* Тосты */
+    .toasts{position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:12}
+    .toast{background:#0e1425;border:1px solid #1e2a4e;color:#cfe6ff;border-radius:10px;padding:10px 12px;box-shadow:0 8px 26px #0008;min-width:260px}
+    .toast.ok{border-color:#1a6145;color:#bfffe9}
+    .toast.err{border-color:#7a2e2e;color:#ffd0d0}
+    .kbd{display:inline-block;background:#000;border:1px solid #333;border-radius:6px;padding:2px 6px;margin:0 2px;color:#aee;font-family:ui-monospace,Consolas,monospace}
+    /* Редактор (канвас) */
+    .editor-wrap{display:flex;gap:14px;flex-wrap:wrap}
+    .canvas-box{background:#0c111d;border:1px solid var(--border);border-radius:12px;padding:10px;max-width:min(980px,94vw)}
+    .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .controls label{display:flex;gap:8px;align-items:center;background:#0d152a;border:1px solid #203158;border-radius:10px;padding:8px 10px}
+    .mark{background:#07101f;border:1px dashed #2a3a62;border-radius:8px;padding:6px 8px;color:#9bc3ff}
+    /* Адаптив */
+    @media (max-width:1080px){.sidebar{width:200px}.list{width:360px}}
+    @media (max-width:880px){.sidebar{display:none}.sticky-bottom{left:0}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">SalemMedia v80</div>
+      <div class="toolrow">
+        <button class="btn" id="btn-import">Импорт</button>
+        <input id="file-input" type="file" hidden multiple webkitdirectory directory />
+      </div>
+      <div class="toolrow">
+        <button class="btn secondary" id="btn-upload">Загрузить → сервер</button>
+      </div>
+      <div class="toolrow">
+        <button class="btn ghost" id="btn-settings">Настройки</button>
+      </div>
+      <button class="section-btn active" data-sec="audio">◎ Аудио</button>
+      <button class="section-btn" data-sec="video">◎ Видео</button>
+      <button class="section-btn" data-sec="images">◎ Фото</button>
+      <button class="section-btn" data-sec="docs">◎ Документы</button>
+      <button class="section-btn" data-sec="albums">◎ Альбомы</button>
+      <button class="section-btn" data-sec="editor">◎ Редактор</button>
+      <div class="toolrow">
+        <button class="btn warn" id="btn-shortcuts">?</button>
+        <button class="btn ok" id="btn-export">Экспорт JSON</button>
+      </div>
+    </aside>
+
+    <section class="split">
+      <div class="list">
+        <div class="list-header">
+          <input class="input" id="search" placeholder="Поиск (имя, теги)…" style="flex:1"/>
+          <select class="select" id="sort">
+            <option value="name">Сорт: Имя</option>
+            <option value="date">Сорт: Дата</option>
+            <option value="size">Сорт: Размер</option>
+          </select>
+          <span class="badge" id="badge-count">0</span>
+        </div>
+        <div id="cards"></div>
+      </div>
+
+      <div class="panel" id="panel">
+        <div class="section-title" id="panel-title">Плеер</div>
+        <div class="toolbar">
+          <div class="switch"><input type="checkbox" id="use-server" checked> <label for="use-server">Синхронизация с сервером (7000)</label></div>
+          <div class="switch"><input type="checkbox" id="ab-loop"> <label for="ab-loop">A↔B Loop</label></div>
+          <div class="switch"><input type="checkbox" id="pip"> <label for="pip">PIP (видео)</label></div>
+          <label class="switch">Скорость <input id="rate" type="range" min="0.5" max="2" step="0.05" value="1"></label>
+          <button class="btn ghost" id="btn-details">Свойства</button>
+          <button class="btn ghost" id="btn-tags">Теги</button>
+          <button class="btn ghost" id="btn-open-editor">Открыть в редакторе</button>
+        </div>
+        <div id="viewer"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="sticky-bottom" id="nowbar" style="display:none">
+    <div class="mini"><img id="now-thumb"><div id="now-title"></div></div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn ghost" id="btn-prev">⏮</button>
+      <button class="btn ghost" id="btn-play">⏯</button>
+      <button class="btn ghost" id="btn-next">⏭</button>
+    </div>
+  </div>
+
+  <!-- Модалки -->
+  <div class="modal-backdrop" id="modal-settings">
+    <div class="modal">
+      <div style="display:flex;align-items:center">
+        <h3>Настройки</h3><button class="close-x" onclick="closeModal('modal-settings')">✕</button>
+      </div>
+      <div class="grid">
+        <label>API Base (сервер): <input class="input" id="cfg-api" placeholder="http://127.0.0.1:7000"></label>
+        <label>Тема: 
+          <select class="select" id="cfg-theme">
+            <option value="neon-dark">Neon Dark</option>
+            <option value="classic">Classic</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="cfg-use-server" checked> Использовать сервер</label>
+        <label><input type="checkbox" id="cfg-autoplay"> Автовоспроизведение при выборе</label>
+      </div>
+      <div class="actions">
+        <button class="btn ok" onclick="saveSettings()">Сохранить</button>
+        <button class="btn ghost" onclick="closeModal('modal-settings')">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-details">
+    <div class="modal">
+      <div style="display:flex;align-items:center">
+        <h3>Свойства файла</h3><button class="close-x" onclick="closeModal('modal-details')">✕</button>
+      </div>
+      <div id="details-body"></div>
+      <div class="actions"><button class="btn ghost" onclick="closeModal('modal-details')">Ок</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-tags">
+    <div class="modal">
+      <div style="display:flex;align-items:center">
+        <h3>Теги</h3><button class="close-x" onclick="closeModal('modal-tags')">✕</button>
+      </div>
+      <div class="row">
+        <input class="input" id="tag-input" placeholder="Добавить тег (Enter)"/>
+      </div>
+      <div id="tags-cloud" class="row"></div>
+      <div class="actions">
+        <button class="btn ok" onclick="saveTags()">Сохранить</button>
+        <button class="btn ghost" onclick="closeModal('modal-tags')">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-editor">
+    <div class="modal">
+      <div style="display:flex;align-items:center">
+        <h3>Редактор</h3><button class="close-x" onclick="closeModal('modal-editor')">✕</button>
+      </div>
+      <div class="editor-wrap">
+        <div class="canvas-box">
+          <canvas id="canvas" width="960" height="540" style="max-width:100%"></canvas>
+        </div>
+        <div class="controls">
+          <label>Яркость <input type="range" id="ctl-bright" min="0.5" max="1.5" step="0.01" value="1"></label>
+          <label>Контраст <input type="range" id="ctl-contr"  min="0.5" max="1.8" step="0.01" value="1"></label>
+          <label>Насыщ. <input type="range" id="ctl-sat" min="0" max="2" step="0.01" value="1"></label>
+          <label>Оттенок <input type="range" id="ctl-hue" min="-180" max="180" step="1" value="0"></label>
+          <label>Размытие <input type="range" id="ctl-blur" min="0" max="8" step="0.5" value="0"></label>
+          <label>Зум <input type="range" id="ctl-zoom" min="0.5" max="2" step="0.01" value="1"></label>
+          <div class="row">
+            <button class="btn ghost" onclick="rotate(-90)">⟲ Повернуть</button>
+            <button class="btn ghost" onclick="rotate(90)">⟳ Повернуть</button>
+            <button class="btn ghost" onclick="flipH()">⇋ Отразить</button>
+            <button class="btn ghost" onclick="resetEditor()">Сброс</button>
+          </div>
+          <div class="row">
+            <button class="btn ok" onclick="downloadCanvas()">Скачать PNG</button>
+            <button class="btn" onclick="saveCanvasToServer()">Сохранить на сервер</button>
+          </div>
+          <div class="mark">Поддерживаются изображения и кадры из видео (снимок кадра).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-shortcuts">
+    <div class="modal">
+      <div style="display:flex;align-items:center">
+        <h3>Горячие клавиши</h3><button class="close-x" onclick="closeModal('modal-shortcuts')">✕</button>
+      </div>
+      <div>
+        <div><span class="kbd">/</span> — фокус в поиск</div>
+        <div><span class="kbd">Space</span> — Play/Pause</div>
+        <div><span class="kbd">[</span>/<span class="kbd">]</span> — скорость −/+</div>
+        <div><span class="kbd">A</span>/<span class="kbd">B</span> — точки A/B для петли</div>
+        <div><span class="kbd">E</span> — открыть редактор</div>
+        <div><span class="kbd">I</span> — импорт</div>
+        <div><span class="kbd">T</span> — теги</div>
+      </div>
+      <div class="actions"><button class="btn ghost" onclick="closeModal('modal-shortcuts')">Ок</button></div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+
+  <script>
+
+  /* ==== UUID polyfill ==== */
+(function(){
+  // Лёгкий полифилл для окружений без crypto.randomUUID (QtWebEngine, старый Chromium, file://)
+  const hasCrypto = typeof window !== 'undefined' && window.crypto;
+  const hasGRV = hasCrypto && typeof window.crypto.getRandomValues === 'function';
+
+  function uuidFromBytes(bytes){
+    // RFC 4122 v4 во всех деталях
+    bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+    bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant
+    const hex = Array.from(bytes, b => b.toString(16).padStart(2,'0')).join('');
+    return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+  }
+
+  if (!hasCrypto) window.crypto = {};
+  if (!window.crypto.randomUUID) {
+    window.crypto.randomUUID = function(){
+      if (hasGRV) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+        return uuidFromBytes(bytes);
+      } else {
+        // Фолбэк на Math.random (не криптостойкий, но для внутренних id ок)
+        const bytes = new Uint8Array(16);
+        for (let i=0;i<16;i++) bytes[i] = Math.floor(Math.random()*256);
+        return uuidFromBytes(bytes);
+      }
+    };
+  }
+
+  // Универсальная функция, чтобы больше не думать об окружении
+  window.uid = function(){ return window.crypto.randomUUID(); };
+})();
+  // ---------------------- CONFIG ----------------------
+  const DEFAULT_API_BASE = "http://127.0.0.1:7000";
+  let config = {
+    apiBase: DEFAULT_API_BASE,
+    useServer: true,
+    autoplay: false,
+    theme: 'neon-dark'
+  };
+
+  // ---------------------- STATE -----------------------
+  const KINDS = {audio:'audio', video:'video', images:'images', docs:'docs'};
+  let state = {
+    sec: 'audio',
+    items: [],           // {id,name,kind,url,size,mtime,tags:[],thumb,cover,duration,ext,origin:'server'|'local', file?}
+    filtered: [],
+    selectedIndex: -1,
+    aMark: null, bMark: null,
+    playingEl: null
+  };
+
+  // ------------------- STORAGE (IndexedDB) ------------
+  const DB_NAME = 'SalemMediaDB', DB_VER = 1, STORE = 'files';
+  function idbOpen(){
+    return new Promise((res,rej)=>{
+      const req = indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded = e=>{
+        const db = e.target.result;
+        if(!db.objectStoreNames.contains(STORE)){
+          db.createObjectStore(STORE,{keyPath:'id'});
+        }
+      };
+      req.onsuccess = e=>res(e.target.result);
+      req.onerror = e=>rej(e.target.error);
+    });
+  }
+  async function idbGetAll(){
+    const db = await idbOpen();
+    return new Promise((res,rej)=>{
+      const tx = db.transaction(STORE,'readonly'); const st = tx.objectStore(STORE);
+      const rq = st.getAll(); rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error);
+    });
+  }
+  async function idbPutMany(arr){
+    const db = await idbOpen();
+    return new Promise((res,rej)=>{
+      const tx = db.transaction(STORE,'readwrite'); const st = tx.objectStore(STORE);
+      arr.forEach(o=>st.put(o)); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error);
+    });
+  }
+
+  // ------------------ HELPERS/UI ----------------------
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  function toast(msg,type=''){const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;$('#toasts').appendChild(t);setTimeout(()=>t.remove(),3500);}
+  function openModal(id){const m=$('#'+id); if(m){m.style.display='flex';}}
+  function closeModal(id){const m=$('#'+id); if(m){m.style.display='none';}}
+  function fmtSize(n){if(!n&&n!==0)return'';const u=['B','KB','MB','GB'];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++;}return (Math.round(n*10)/10)+' '+u[i];}
+  function kindByExt(name){
+    const ext=(name.split('.').pop()||'').toLowerCase();
+    if(['mp3','wav','flac','ogg','m4a','aac'].includes(ext)) return KINDS.audio;
+    if(['mp4','webm','mkv','avi','mov','m4v'].includes(ext)) return KINDS.video;
+    if(['jpg','jpeg','png','gif','bmp','webp','tiff','svg'].includes(ext)) return KINDS.images;
+    if(['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','md','epub','rtf','csv'].includes(ext)) return KINDS.docs;
+    return 'file';
+  }
+  function extOf(name){return (name.split('.').pop()||'').toLowerCase();}
+  function activeKind(){return state.sec;}
+
+  // ------------------ RENDER LIST ---------------------
+  function applyFilters(){
+    const q = $('#search').value.trim().toLowerCase();
+    const sec = activeKind();
+    let arr = state.items.filter(x => x.kind===sec);
+    if(q){
+      arr = arr.filter(x =>
+        (x.name||'').toLowerCase().includes(q) ||
+        (x.tags||[]).some(t => (t||'').toLowerCase().includes(q))
+      );
+    }
+    const sort = $('#sort').value;
+    arr.sort((a,b)=>{
+      if(sort==='name') return (a.name||'').localeCompare(b.name||'','ru');
+      if(sort==='size') return (a.size||0)-(b.size||0);
+      if(sort==='date') return new Date(a.mtime||0)-new Date(b.mtime||0);
+      return 0;
+    });
+    state.filtered = arr;
+    $('#badge-count').textContent = arr.length;
+    renderCards();
+  }
+
+  function renderCards(){
+    const box = $('#cards'); box.innerHTML='';
+    for(let i=0;i<state.filtered.length;i++){
+      const it = state.filtered[i];
+      const card = document.createElement('div'); card.className='card'; card.dataset.idx=i;
+      const img = document.createElement('img'); img.className='thumb';
+      img.src = it.thumb || it.cover || (it.kind===KINDS.images ? (it.url||'') : 'https://cdn-icons-png.flaticon.com/512/727/727245.png');
+      const meta = document.createElement('div'); meta.className='meta';
+      const t   = document.createElement('div'); t.className='title'; t.textContent=it.name || '(без имени)';
+      const d   = document.createElement('div'); d.className='desc'; d.textContent = (it.origin||'') + ' · ' + (fmtSize(it.size)||'') + (it.ext?(' · '+it.ext):'');
+      const tags = document.createElement('div'); tags.className='tags';
+      (it.tags||[]).forEach(tag=>{const s=document.createElement('span');s.className='chip';s.textContent=tag;tags.appendChild(s);});
+      meta.appendChild(t); meta.appendChild(d); meta.appendChild(tags);
+      card.appendChild(img); card.appendChild(meta);
+      card.onclick = ()=>selectItem(i);
+      box.appendChild(card);
+    }
+  }
+
+  // ------------------ SELECT / VIEW -------------------
+  function selectItem(idx){
+    state.selectedIndex = idx;
+    const it = state.filtered[idx];
+    if(!it) return;
+    $('#nowbar').style.display='flex';
+    $('#now-thumb').src = it.thumb || it.cover || 'https://cdn-icons-png.flaticon.com/512/727/727245.png';
+    $('#now-title').textContent = it.name || '';
+    showItem(it);
+  }
+
+  async function showItem(it){
+    const v = $('#viewer'); v.innerHTML='';
+    $('#panel-title').textContent = it.kind.toUpperCase();
+    const rate = parseFloat($('#rate').value||'1');
+
+    if(it.kind===KINDS.audio){
+      const el = document.createElement('audio');
+      el.className='media'; el.controls=true; el.src=it.url; el.playbackRate=rate; v.appendChild(el); state.playingEl = el;
+    }
+    else if(it.kind===KINDS.video){
+      const el = document.createElement('video');
+      el.className='media'; el.controls=true; el.src=it.url; el.playbackRate=rate; v.appendChild(el); state.playingEl = el;
+
+      if($('#pip').checked && document.pictureInPictureEnabled){
+        el.addEventListener('enterpictureinpicture',()=>{});
+      }
+    }
+    else if(it.kind===KINDS.images){
+      const img = document.createElement('img'); img.id='img-view'; img.src=it.url; v.appendChild(img);
+      const bar = document.createElement('div'); bar.className='toolbar';
+      bar.innerHTML = `
+        <button class="btn ghost" onclick="snapshotToEditor()">Открыть в редакторе</button>
+        <button class="btn ghost" onclick="downloadUrl('${it.url}','${(it.name||'image')}.png')">Скачать</button>`;
+      v.appendChild(bar);
+    }
+    else if(it.kind===KINDS.docs){
+      const ext = it.ext || extOf(it.name||'');
+      if(ext==='pdf'){
+        const iframe = document.createElement('iframe');
+        iframe.style='width:98%;height:72vh;border:none;border-radius:12px;background:#101620';
+        iframe.src=it.url; v.appendChild(iframe);
+      } else if(['txt','md'].includes(ext)){
+        const ta = document.createElement('textarea');
+        ta.style='width:98%;height:72vh;background:#0f1321;color:#cfe6ff;border:1px solid #1e2a4e;border-radius:12px;padding:12px;font-size:1rem';
+        ta.value = await fetchText(it.url);
+        v.appendChild(ta);
+        const bar = document.createElement('div'); bar.className='toolbar';
+        bar.innerHTML = `
+          <button class="btn ok" onclick="downloadText('${sanitizeFilename(it.name||'text')}',document.querySelector('textarea').value)">Скачать .txt</button>
+          <button class="btn" onclick="uploadTextToServer('${sanitizeFilename(it.name||'note.txt')}', document.querySelector('textarea').value)">Сохранить на сервер</button>`;
+        v.appendChild(bar);
+      } else {
+        v.innerHTML = `<div class="mark">Формат ${ext} пока просматривается ограниченно. Могу отдать скачивание:
+        <br/><br/><a class="btn" href="${it.url}" download>Скачать</a></div>`;
+      }
+    }
+
+    bindABLoop();
+    if(config.autoplay && state.playingEl && state.playingEl.play){try{await state.playingEl.play();}catch{}}
+  }
+
+  // ------------------ SEARCH / SORT -------------------
+  $('#search').addEventListener('input', applyFilters);
+  $('#sort').addEventListener('change', applyFilters);
+
+  // ------------------ SECTION SWITCH ------------------
+  $$('.section-btn').forEach(b=>{
+    b.onclick = ()=>{
+      $$('.section-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); state.sec = b.dataset.sec; applyFilters();
+    };
+  });
+
+  // ------------------ IMPORT / UPLOAD -----------------
+  $('#btn-import').onclick = ()=>$('#file-input').click();
+  $('#file-input').addEventListener('change', e=>handleFiles([...e.target.files]));
+  async function handleFiles(files){
+    if(!files || !files.length) return;
+    const localItems = [];
+    for(const f of files){
+      const url = URL.createObjectURL(f);
+      const kind = kindByExt(f.name);
+      const it = {
+        id: crypto.randomUUID(),
+        name: f.webkitRelativePath || f.name,
+        kind, url, size: f.size, mtime: new Date().toISOString(),
+        ext: extOf(f.name), origin:'local', tags:[], file:f
+      };
+      localItems.push(it);
+    }
+    state.items.push(...localItems);
+    await idbPutMany(localItems);
+    applyFilters();
+    toast(`Импортировано: ${localItems.length}`);
+  }
+
+  $('#btn-upload').onclick = async ()=>{
+    const files = state.items.filter(x=>x.origin==='local' && x.file);
+    if(!files.length){toast('Нет локальных файлов для загрузки','err');return;}
+    if(!config.useServer){toast('Включи синхронизацию с сервером!','err');return;}
+    try{
+      const fd = new FormData();
+      for(const x of files) fd.append('files', x.file, x.name.split('/').pop());
+      const r = await fetch(`${config.apiBase}/api/upload`, {method:'POST', body:fd});
+      if(!r.ok) throw new Error('Upload failed');
+      const data = await r.json();
+      // Подменяем url/origin для загруженных
+      (data.files||[]).forEach(s=>{
+        const idx = state.items.findIndex(x=>x.name.endsWith(s.name) || x.name===s.name);
+        if(idx>=0){
+          state.items[idx].origin='server';
+          state.items[idx].url = s.url.startsWith('http')? s.url : (config.apiBase + s.url);
+          state.items[idx].size = s.size || state.items[idx].size;
+          state.items[idx].ext  = s.name.split('.').pop();
+        } else {
+          // новенький
+          state.items.push({
+            id: s.id || crypto.randomUUID(),
+            name: s.name, kind: s.kind, url: s.url.startsWith('http')? s.url : (config.apiBase + s.url),
+            size: s.size, mtime: new Date().toISOString(), ext: s.name.split('.').pop(), origin:'server', tags:[]
+          });
+        }
+      });
+      applyFilters();
+      toast('Загружено на сервер ✔','ok');
+    }catch(e){console.error(e); toast('Ошибка загрузки','err');}
+  };
+
+  async function loadFromServer(){
+    try{
+      const r = await fetch(`${config.apiBase}/api/files`);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const data = await r.json();
+      const arr = (data.files||data.items||[]);
+      const mapped = arr.map(s=>({
+        id: s.id||crypto.randomUUID(), name: s.name, kind: s.kind||kindByExt(s.name||''),
+        url: s.url.startsWith('http')? s.url : (config.apiBase + s.url),
+        size: s.size, mtime: s.mtime||new Date().toISOString(), ext: extOf(s.name||''), origin:'server', tags:[]
+      }));
+      // merge
+      const known = new Map(state.items.map(x=>[x.name,x]));
+      for(const m of mapped){ if(!known.has(m.name)) state.items.push(m); }
+      await idbPutMany(mapped);
+      applyFilters();
+      toast('Каталог сервера синхронизирован','ok');
+    }catch(e){console.warn('server fetch fail',e); toast('Не удалось получить список с сервера','err');}
+  }
+
+  // ------------------ SETTINGS ------------------------
+$('#btn-settings').onclick = async ()=>{
+  // при открытии подтягиваем серверные значения, если включен серверный режим
+  if (config.useServer) { try { await loadServerConfig(); } catch(e){} }
+  $('#cfg-api').value = config.apiBase || DEFAULT_API_BASE;
+  $('#cfg-use-server').checked = !!config.useServer;
+  $('#cfg-autoplay').checked = !!config.autoplay;
+  $('#cfg-theme').value = config.theme || 'dark';
+  openModal('modal-settings');
+};
+
+async function saveSettings(){
+  // читаем форму
+  const form = {
+    apiBase: $('#cfg-api').value || DEFAULT_API_BASE,
+    useServer: $('#cfg-use-server').checked,
+    autoplay: $('#cfg-autoplay').checked,
+    theme: $('#cfg-theme').value
+  };
+
+  // применяем в рантайме
+  Object.assign(config, form);
+
+  // сохраняем
+  if (config.useServer) {
+    try {
+      await saveServerConfig(form);   // <-- ПУШИМ на сервер
+    } catch(e) {
+      persistLocal(form);             // фоллбэк — сохраним локально
+      toast('Сервер недоступен — сохранил локально', 'err');
+    }
+    loadFromServer();
+  } else {
+    persistLocal(form);
+  }
+
+  closeModal('modal-settings');
+  toast('Настройки сохранены', 'ok');
+}
+
+// локальная запись
+function persistLocal(c){
+  localStorage.setItem('sm.apiBase', c.apiBase);
+  localStorage.setItem('sm.theme', c.theme);
+  localStorage.setItem('sm.useServer', String(c.useServer));
+  localStorage.setItem('sm.autoplay', String(c.autoplay));
+}
+
+$('#btn-settings').onclick = async ()=>{
+  if (config.useServer) { try { await loadServerConfig(); } catch(e){} }
+  $('#cfg-api').value = config.apiBase || DEFAULT_API_BASE;
+  $('#cfg-use-server').checked = !!config.useServer;
+  $('#cfg-autoplay').checked = !!config.autoplay;
+  $('#cfg-theme').value = config.theme || 'dark';
+  openModal('modal-settings');
+};
+
+
+// правильный селектор id
+$('#cfg-use-server').addEventListener('change', e=>{
+  config.useServer = e.target.checked;
+  if (config.useServer) loadFromServer();
+});
+
+// ----- если у тебя уже есть эти функции — оставь свои -----
+async function loadServerConfig(){
+  const r = await fetch(`${config.apiBase}/api/config`);
+  const j = await r.json();
+  if (!r.ok || !j.ok) throw new Error('bad response');
+  Object.assign(config, j.config || {});
+}
+
+async function saveServerConfig(payload){
+  const r = await fetch(`${config.apiBase}/api/config`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+  const j = await r.json();
+  if (!r.ok || !j.ok) throw new Error('save failed');
+}
+
+
+  // ------------------ DETAILS / TAGS ------------------
+  $('#btn-details').onclick = ()=>{
+    const it = state.filtered[state.selectedIndex]; if(!it) return;
+    $('#details-body').innerHTML = `
+      <div class="grid">
+        <div class="mark">Имя: <b>${it.name||''}</b></div>
+        <div class="mark">Тип: <b>${it.kind||''}</b></div>
+        <div class="mark">Размер: <b>${fmtSize(it.size)||''}</b></div>
+        <div class="mark">Расширение: <b>${it.ext||''}</b></div>
+        <div class="mark">Источник: <b>${it.origin||''}</b></div>
+        <div class="mark">Дата: <b>${new Date(it.mtime||Date.now()).toLocaleString()}</b></div>
+      </div>`;
+    openModal('modal-details');
+  };
+
+  $('#btn-tags').onclick = ()=>{
+    const it = state.filtered[state.selectedIndex]; if(!it) return;
+    const cloud = $('#tags-cloud'); cloud.innerHTML='';
+    (it.tags||[]).forEach(tag=>cloud.appendChild(tagChip(tag)));
+    $('#tag-input').onkeydown = e=>{
+      if(e.key==='Enter'){
+        const t = e.target.value.trim(); if(!t) return;
+        cloud.appendChild(tagChip(t)); e.target.value='';
+      }
+    };
+    openModal('modal-tags');
+  };
+  function tagChip(t){
+    const s=document.createElement('span'); s.className='chip'; s.textContent=t;
+    s.onclick=()=>s.remove(); return s;
+  }
+  function saveTags(){
+    const it = state.filtered[state.selectedIndex]; if(!it) return;
+    const tags = Array.from($('#tags-cloud').querySelectorAll('.chip')).map(x=>x.textContent);
+    it.tags = tags; idbPutMany([it]); applyFilters(); closeModal('modal-tags'); toast('Теги сохранены','ok');
+  }
+
+  async function loadServerConfig() {
+  try {
+    const r = await fetch(`${config.apiBase}/api/config`);
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw 0;
+    const c = j.config || {};
+    // если на сервере есть значения — показать их в модалке и применить
+    if (typeof c.apiBase === 'string') config.apiBase = c.apiBase;
+    if (typeof c.theme === 'string') config.theme = c.theme;
+    if (typeof c.useServer === 'boolean') config.useServer = c.useServer;
+    if (typeof c.autoplay === 'boolean') config.autoplay = c.autoplay;
+
+    // отразить в UI
+    $('#cfg-api').value = config.apiBase;
+    $('#cfg-theme').value = config.theme;
+    $('#cfg-use-server').checked = !!config.useServer;
+    $('#cfg-autoplay').checked = !!config.autoplay;
+
+    // и продублировать в localStorage для офлайна
+    localStorage.setItem('sm.apiBase', config.apiBase);
+    localStorage.setItem('sm.theme', config.theme);
+    localStorage.setItem('sm.useServer', String(config.useServer));
+    localStorage.setItem('sm.autoplay', String(config.autoplay));
+
+    toast('Конфиг загружен с сервера','ok');
+  } catch {
+    toast('Не удалось загрузить конфиг с сервера','err');
+  }
+}
+
+async function saveServerConfig() {
+  try {
+    // читаем текущие значения из формы
+    const payload = {
+      apiBase: $('#cfg-api').value || config.apiBase,
+      theme: $('#cfg-theme').value,
+      useServer: $('#cfg-use-server').checked,
+      autoplay: $('#cfg-autoplay').checked
+    };
+    const r = await fetch(`${config.apiBase}/api/config`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw 0;
+    // применяем локально тоже
+    config.apiBase = payload.apiBase;
+    config.theme = payload.theme;
+    config.useServer = payload.useServer;
+    config.autoplay = payload.autoplay;
+    localStorage.setItem('sm.apiBase', config.apiBase);
+    localStorage.setItem('sm.theme', config.theme);
+    localStorage.setItem('sm.useServer', String(config.useServer));
+    localStorage.setItem('sm.autoplay', String(config.autoplay));
+
+    toast('Конфиг сохранён на сервере','ok');
+    if (config.useServer) loadFromServer();
+  } catch {
+    toast('Не удалось сохранить конфиг на сервер','err');
+  }
+}
+
+// вешаем обработчики
+$('#btn-save-config-server').onclick = saveServerConfig;
+
+  // ------------------ EDITOR (Canvas) -----------------
+  let editor = {img:null, angle:0, flip:false, zoom:1, filters:{bright:1,contr:1,sat:1,hue:0,blur:0}};
+  $('#btn-open-editor').onclick = ()=> openEditorFromSelected();
+  $('#modal-editor').addEventListener('click',e=>{ if(e.target.id==='modal-editor') closeModal('modal-editor'); });
+
+  function snapshotToEditor(){
+    const it = state.filtered[state.selectedIndex]; if(!it || it.kind!==KINDS.images) return;
+    openEditor(it.url);
+  }
+  async function openEditorFromSelected(){
+    const it = state.filtered[state.selectedIndex]; if(!it) return;
+    if(it.kind===KINDS.images){ openEditor(it.url); }
+    else if(it.kind===KINDS.video){
+      // снять кадр
+      const frame = await captureFrame(it.url);
+      openEditor(frame);
+    } else { toast('Редактор работает с изображениями и кадрами из видео','err'); }
+  }
+  function openEditor(srcUrl){
+    editor = {img:new Image(), angle:0, flip:false, zoom:1, filters:{bright:1,contr:1,sat:1,hue:0,blur:0}};
+    const img = editor.img; img.crossOrigin='anonymous'; img.onload=()=>{ drawCanvas(); }; img.src=srcUrl;
+    $('#ctl-bright').value=1; $('#ctl-contr').value=1; $('#ctl-sat').value=1; $('#ctl-hue').value=0; $('#ctl-blur').value=0; $('#ctl-zoom').value=1;
+    openModal('modal-editor');
+  }
+  function drawCanvas(){
+    const canvas = $('#canvas'); const ctx = canvas.getContext('2d');
+    const {img, angle, flip, zoom, filters:{bright,contr,sat,hue,blur}} = editor;
+    if(!img || !img.complete) return;
+    const cw=canvas.width, ch=canvas.height; ctx.clearRect(0,0,cw,ch);
+    ctx.save();
+    ctx.translate(cw/2,ch/2);
+    ctx.rotate(angle * Math.PI/180);
+    ctx.scale(flip?-1:1,1);
+    ctx.filter = `brightness(${bright}) contrast(${contr}) saturate(${sat}) hue-rotate(${hue}deg) blur(${blur}px)`;
+    const ih = img.height, iw = img.width;
+    const scale = Math.min(cw/iw, ch/ih) * zoom;
+    const dw = iw*scale, dh = ih*scale;
+    ctx.drawImage(img, -dw/2, -dh/2, dw, dh);
+    ctx.restore();
+  }
+  function rotate(d){ editor.angle = (editor.angle + d + 360)%360; drawCanvas(); }
+  function flipH(){ editor.flip = !editor.flip; drawCanvas(); }
+  function resetEditor(){ editor.angle=0; editor.flip=false; editor.zoom=1; editor.filters={bright:1,contr:1,sat:1,hue:0,blur:0}; syncSliders(); drawCanvas();}
+  function syncSliders(){ $('#ctl-bright').value=editor.filters.bright; $('#ctl-contr').value=editor.filters.contr; $('#ctl-sat').value=editor.filters.sat; $('#ctl-hue').value=editor.filters.hue; $('#ctl-blur').value=editor.filters.blur; $('#ctl-zoom').value=editor.zoom;}
+  ['bright','contr','sat','hue','blur'].forEach(k=> $('#ctl-'+(k==='contr'?'contr':k)).addEventListener('input',e=>{editor.filters[k]=(k==='hue'||k==='blur')?parseFloat(e.target.value):+e.target.value; drawCanvas();}));
+  $('#ctl-zoom').addEventListener('input', e=>{editor.zoom=parseFloat(e.target.value); drawCanvas();});
+
+  function downloadCanvas(){
+    const a=document.createElement('a'); a.download='image_edited.png'; a.href=$('#canvas').toDataURL('image/png'); a.click();
+  }
+  async function saveCanvasToServer(){
+    if(!config.useServer) return toast('Включи синхронизацию с сервером','err');
+    $('#canvas').toBlob(async blob=>{
+      const fd = new FormData(); fd.append('files', blob, 'edited.png');
+      try{
+        const r=await fetch(`${config.apiBase}/api/upload`,{method:'POST',body:fd});
+        if(!r.ok) throw new Error();
+        toast('Сохранено на сервер','ok');
+      }catch(e){toast('Ошибка сохранения','err');}
+    },'image/png',0.92);
+  }
+
+  async function captureFrame(url){
+    return new Promise(async (res,rej)=>{
+      try{
+        const vid=document.createElement('video'); vid.crossOrigin='anonymous'; vid.src=url; await vid.play().catch(()=>{});
+        vid.currentTime = Math.min(1, vid.duration || 1); // кадр ~1с
+        vid.onseeked = ()=>{
+          const c=document.createElement('canvas'); c.width=960; c.height=540; c.getContext('2d').drawImage(vid,0,0,c.width,c.height);
+          res(c.toDataURL('image/png'));
+        };
+      }catch(e){rej(e);}
+    });
+  }
+
+  // ------------------ RATE / LOOP / PIP ---------------
+  $('#rate').addEventListener('input',()=>{ if(state.playingEl) state.playingEl.playbackRate=parseFloat($('#rate').value||'1'); });
+  function bindABLoop(){
+    const el = state.playingEl; if(!el) return;
+    el.ontimeupdate = ()=>{
+      if($('#ab-loop').checked && state.aMark!=null && state.bMark!=null){
+        if(el.currentTime > state.bMark) el.currentTime = state.aMark;
+      }
+    };
+  }
+  window.addEventListener('keydown',e=>{
+    if(e.key==='/'){ e.preventDefault(); $('#search').focus(); }
+    if(e.key===' '){ if(state.playingEl){ e.preventDefault(); state.playingEl.paused?state.playingEl.play():state.playingEl.pause(); } }
+    if(e.key==='['){ const r=Math.max(0.5, (parseFloat($('#rate').value)-0.05)); $('#rate').value=r; if(state.playingEl) state.playingEl.playbackRate=r; }
+    if(e.key===']'){ const r=Math.min(2, (parseFloat($('#rate').value)+0.05)); $('#rate').value=r; if(state.playingEl) state.playingEl.playbackRate=r; }
+    if(e.key.toLowerCase()==='a'){ if(state.playingEl) state.aMark = state.playingEl.currentTime; toast('A='+state.aMark.toFixed(2)); }
+    if(e.key.toLowerCase()==='b'){ if(state.playingEl) state.bMark = state.playingEl.currentTime; toast('B='+state.bMark.toFixed(2)); }
+    if(e.key.toLowerCase()==='e'){ openEditorFromSelected(); }
+    if(e.key.toLowerCase()==='i'){ $('#file-input').click(); }
+    if(e.key==='?'){ openModal('modal-shortcuts'); }
+  });
+
+  // ------------------ DOC helpers ---------------------
+  async function fetchText(url){ try{ const r=await fetch(url); return await r.text(); }catch{return '';} }
+  function downloadText(name,content){ const a=document.createElement('a'), b=new Blob([content],{type:'text/plain;charset=utf-8'}); a.href=URL.createObjectURL(b); a.download=name.endsWith('.txt')?name:`${name}.txt`; a.click(); }
+  async function uploadTextToServer(name,content){
+    if(!config.useServer) return toast('Включи синхронизацию с сервером','err');
+    const fd=new FormData(); fd.append('files', new Blob([content],{type:'text/plain'}), name);
+    try{ const r=await fetch(`${config.apiBase}/api/upload`,{method:'POST',body:fd}); if(!r.ok) throw 0; toast('Текст сохранён на сервер','ok'); }catch{ toast('Ошибка сохранения','err');}
+  }
+  function sanitizeFilename(s){ return (s||'file.txt').replace(/[\\\/:*?"<>|]/g,'_'); }
+  function downloadUrl(url, name){ const a=document.createElement('a'); a.href=url; a.download=name||''; a.click(); }
+
+  // ------------------ SHORTCUTS -----------------------
+  $('#btn-shortcuts').onclick = ()=>openModal('modal-shortcuts');
+
+  // ------------------ INIT ----------------------------
+  async function init(){
+    // Первая загрузка — читаем локальную БД
+    try{
+      const local = await idbGetAll();
+      state.items = local;
+    }catch{}
+    // И сразу сервер, если включён
+    const sw = $('#use-server'); sw.checked = config.useServer;
+    if(config.useServer) await loadFromServer();
+    applyFilters();
+  }
+
+    (function(){
+    const hasCrypto = typeof window !== 'undefined' && window.crypto;
+    const hasGRV = hasCrypto && typeof window.crypto.getRandomValues === 'function';
+    function uuidFromBytes(bytes){
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = Array.from(bytes, b => b.toString(16).padStart(2,'0')).join('');
+      return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+    }
+    if (!hasCrypto) window.crypto = {};
+    if (!window.crypto.randomUUID) {
+      window.crypto.randomUUID = function(){
+        if (hasGRV) { const b=new Uint8Array(16); window.crypto.getRandomValues(b); return uuidFromBytes(b); }
+        const b=new Uint8Array(16); for (let i=0;i<16;i++) b[i]=Math.floor(Math.random()*256); return uuidFromBytes(b);
+      };
+    }
+    window.uid = function(){ return window.crypto.randomUUID(); };
+  })();
+  </script>
+
+  <script>
+  // ---------------- CONFIG & STATE ----------------
+  const DEFAULT_API_BASE = "http://127.0.0.1:7000";
+  let config = {
+    apiBase: localStorage.getItem('sm.apiBase') || DEFAULT_API_BASE,
+    useServer: (localStorage.getItem('sm.useServer') ?? 'true') === 'true',
+    autoplay: (localStorage.getItem('sm.autoplay') ?? 'false') === 'true',
+    theme: localStorage.getItem('sm.theme') || 'neon-dark'
+  };
+
+  const KINDS = {audio:'audio', video:'video', images:'images', docs:'docs'};
+  let state = {
+    sec: 'audio',
+    items: [], filtered: [], selectedIndex: -1,
+    aMark: null, bMark: null, playingEl: null
+  };
+
+  // ---------------- IndexedDB ----------------
+  const DB_NAME='SalemMediaDB', DB_VER=1, STORE='files';
+  function idbOpen(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB_NAME,DB_VER); r.onupgradeneeded=e=>{const db=e.target.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE,{keyPath:'id'});}; r.onsuccess=e=>res(e.target.result); r.onerror=e=>rej(e.target.error);});}
+  async function idbGetAll(){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readonly'); const st=tx.objectStore(STORE); const rq=st.getAll(); rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error); });}
+  async function idbPutMany(arr){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); const st=tx.objectStore(STORE); arr.forEach(o=>st.put(o)); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); });}
+  async function idbDelete(id){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).delete(id); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); });}
+  async function idbClear(){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).clear(); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); });}
+
+  // --------------- UI helpers ----------------
+  const $=sel=>document.querySelector(sel); const $$=sel=>Array.from(document.querySelectorAll(sel));
+  function toast(msg,t=''){const d=document.createElement('div');d.className='toast '+t;d.textContent=msg;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),3500);}
+  function openModal(id){const m=$('#'+id); if(m) m.style.display='flex';}
+  function closeModal(id){const m=$('#'+id); if(m) m.style.display='none';}
+  function fmtSize(n){if(n==null)return'';const u=['B','KB','MB','GB'];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++;}return (Math.round(n*10)/10)+' '+u[i];}
+  function kindByExt(name){const ext=(name.split('.').pop()||'').toLowerCase(); if(['mp3','wav','flac','ogg','m4a','aac'].includes(ext))return KINDS.audio; if(['mp4','webm','mkv','avi','mov','m4v'].includes(ext))return KINDS.video; if(['jpg','jpeg','png','gif','bmp','webp','tiff','svg'].includes(ext))return KINDS.images; if(['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','md','epub','rtf','csv'].includes(ext))return KINDS.docs; return 'file';}
+  function extOf(n){return (n.split('.').pop()||'').toLowerCase();}
+  function sanitizeFilename(s){return (s||'file.txt').replace(/[\\\/:*?"<>|]/g,'_');}
+  function downloadUrl(url, name){const a=document.createElement('a'); a.href=url; a.download=name||''; a.click();}
+
+  // --------------- render list ----------------
+  function applyFilters(){
+    const q=$('#search').value.trim().toLowerCase(); const sec=state.sec;
+    let arr = state.items.filter(x=>x.kind===sec);
+    if(q) arr = arr.filter(x => (x.name||'').toLowerCase().includes(q) || (x.tags||[]).some(t=>(t||'').toLowerCase().includes(q)));
+    const s=$('#sort').value;
+    arr.sort((a,b)=> s==='name' ? (a.name||'').localeCompare(b.name||'','ru') : s==='size' ? (a.size||0)-(b.size||0) : new Date(a.mtime||0)-new Date(b.mtime||0));
+    state.filtered = arr; $('#badge-count').textContent=arr.length; renderCards();
+    // auto-select first if none
+    if(state.selectedIndex<0 && arr.length>0) selectItem(0);
+  }
+  function renderCards(){
+    const box=$('#cards'); box.innerHTML='';
+    state.filtered.forEach((it,i)=>{
+      const card=document.createElement('div'); card.className='card'; card.dataset.idx=i;
+      const img=document.createElement('img'); img.className='thumb';
+      img.src = it.thumb || it.cover || (it.kind===KINDS.images ? (it.url||'') : 'https://cdn-icons-png.flaticon.com/512/727/727245.png');
+      const meta=document.createElement('div'); meta.className='meta';
+      const t=document.createElement('div'); t.className='title'; t.textContent=it.name||'(без имени)';
+      const d=document.createElement('div'); d.className='desc'; d.textContent=(it.origin||'')+' · '+(fmtSize(it.size)||'')+(it.ext?(' · '+it.ext):'');
+      const tags=document.createElement('div'); tags.className='tags'; (it.tags||[]).forEach(tag=>{const s=document.createElement('span');s.className='chip';s.textContent=tag;tags.appendChild(s);});
+      meta.appendChild(t); meta.appendChild(d); meta.appendChild(tags); card.appendChild(img); card.appendChild(meta);
+      card.onclick=()=>selectItem(i); box.appendChild(card);
+    });
+  }
+
+  // --------------- select/view ----------------
+  function selectItem(i){
+    state.selectedIndex=i;
+    const it=state.filtered[i]; if(!it) return;
+    $('#nowbar').style.display='flex'; $('#now-thumb').src=it.thumb||it.cover||'https://cdn-icons-png.flaticon.com/512/727/727245.png'; $('#now-title').textContent=it.name||'';
+    showItem(it);
+  }
+
+  async function showItem(it){
+    const v=$('#viewer'); v.innerHTML=''; $('#panel-title').textContent = (it.kind||'').toUpperCase(); const rate=parseFloat($('#rate').value||'1');
+    if(it.kind===KINDS.audio){ const el=document.createElement('audio'); el.className='media'; el.controls=true; el.src=it.url; el.playbackRate=rate; v.appendChild(el); state.playingEl=el; }
+    else if(it.kind===KINDS.video){
+      const el=document.createElement('video'); el.className='media'; el.controls=true; el.src=it.url; el.playbackRate=rate; v.appendChild(el); state.playingEl=el;
+      if($('#pip').checked && document.pictureInPictureEnabled){ el.addEventListener('enterpictureinpicture',()=>{}); }
+    }
+    else if(it.kind===KINDS.images){
+      const img=document.createElement('img'); img.id='img-view'; img.src=it.url; v.appendChild(img);
+    }
+    else if(it.kind===KINDS.docs){
+      const ext=it.ext||extOf(it.name||'');
+      if(ext==='pdf'){ const iframe=document.createElement('iframe'); iframe.style='width:98%;height:72vh;border:none;border-radius:12px;background:#101620'; iframe.src=it.url; v.appendChild(iframe); }
+      else if(['txt','md'].includes(ext)){
+        const ta=document.createElement('textarea'); ta.style='width:98%;height:72vh;background:#0f1321;color:#cfe6ff;border:1px solid #1e2a4e;border-radius:12px;padding:12px;font-size:1rem';
+        ta.value = await fetchText(it.url); v.appendChild(ta);
+        const bar=document.createElement('div'); bar.className='toolbar';
+        bar.innerHTML = `<button class="btn ok" onclick="downloadText('${sanitizeFilename(it.name||'text')}',document.querySelector('textarea').value)">Скачать .txt</button>
+                         <button class="btn" onclick="uploadTextToServer('${sanitizeFilename(it.name||'note.txt')}', document.querySelector('textarea').value)">Сохранить на сервер</button>`;
+        v.appendChild(bar);
+      } else {
+        v.innerHTML = `<div class="mark">Формат ${ext} можно скачать:<br/><br/><a class="btn" href="${it.url}" download>Скачать</a></div>`;
+      }
+    }
+    bindABLoop();
+    if(config.autoplay && state.playingEl?.play){try{await state.playingEl.play();}catch{}}
+  }
+
+  // --------------- search/sort/sections ---------------
+  $('#search').addEventListener('input', applyFilters);
+  $('#sort').addEventListener('change', applyFilters);
+  $$('.section-btn').forEach(b=> b.onclick=()=>{ $$('.section-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); state.sec=b.dataset.sec; applyFilters(); });
+
+  // --------------- import/upload ----------------
+  $('#btn-import').onclick=()=>$('#file-input').click();
+  $('#file-input').addEventListener('change', e=>handleFiles([...e.target.files]));
+  async function handleFiles(files){
+    if(!files?.length) return;
+    const localItems = files.map(f=>{
+      const url=URL.createObjectURL(f); const kind=kindByExt(f.name);
+      return { id: uid(), name: f.webkitRelativePath||f.name, kind, url, size:f.size, mtime:new Date().toISOString(), ext: extOf(f.name), origin:'local', tags:[], file:f };
+    });
+    state.items.push(...localItems); await idbPutMany(localItems); applyFilters(); toast(`Импортировано: ${localItems.length}`);
+  }
+
+  $('#btn-upload').onclick = async ()=>{
+    const files = state.items.filter(x=>x.origin==='local' && x.file);
+    if(!files.length) return toast('Нет локальных файлов','err');
+    if(!config.useServer) return toast('Включи сервер в настройках','err');
+    try{
+      const fd=new FormData(); files.forEach(x=> fd.append('files', x.file, x.name.split('/').pop()));
+      const r=await fetch(`${config.apiBase}/api/upload`,{method:'POST',body:fd}); if(!r.ok) throw 0; const data=await r.json();
+      (data.files||[]).forEach(s=>{
+        // ищем по имени, если совпадает хвост (на случай подкаталогов)
+        const idx=state.items.findIndex(x=>x.name.endsWith(s.name) || x.name===s.name);
+        const srv={ id: s.id||uid(), name: s.name, stored: s.stored, kind: s.kind, url: s.url.startsWith('http')?s.url:(config.apiBase+s.url), size: s.size, mtime: s.mtime||new Date().toISOString(), ext: extOf(s.name), origin:'server', tags: s.tags||[] };
+        if(idx>=0){ state.items[idx] = {...state.items[idx], ...srv, file: undefined}; }
+        else{ state.items.push(srv); }
+      });
+      applyFilters(); toast('Загружено на сервер ✔','ok');
+    }catch{ toast('Ошибка загрузки','err'); }
+  };
+
+  async function loadFromServer(){
+    if(!config.useServer) return;
+    try{
+      const r=await fetch(`${config.apiBase}/api/files`); if(!r.ok) throw 0; const data=await r.json();
+      const arr=(data.files||[]);
+      const mapped=arr.map(s=>({ id: s.id||uid(), name:s.name, stored:s.stored, kind:s.kind||kindByExt(s.name||''), url: s.url.startsWith('http')?s.url:(config.apiBase+s.url), size:s.size, mtime:s.mtime||new Date().toISOString(), ext: extOf(s.name||''), origin:'server', tags:(s.tags||[]) }));
+      const known=new Map(state.items.map(x=>[x.stored||x.name,x]));
+      mapped.forEach(m=>{ if(!known.has(m.stored||m.name)) state.items.push(m); });
+      await idbPutMany(mapped); applyFilters(); toast('Сервер синхронизирован','ok');
+    }catch{ toast('Не удалось получить список с сервера','err'); }
+  }
+
+  // --------------- settings ----------------
+  $('#btn-settings').onclick=()=>{ $('#cfg-api').value=config.apiBase; $('#cfg-use-server').checked=config.useServer; $('#cfg-autoplay').checked=config.autoplay; $('#cfg-theme').value=config.theme; openModal('modal-settings');};
+  function saveSettings(){
+    config.apiBase=$('#cfg-api').value||DEFAULT_API_BASE; config.useServer=$('#cfg-use-server').checked; config.autoplay=$('#cfg-autoplay').checked; config.theme=$('#cfg-theme').value;
+    localStorage.setItem('sm.apiBase',config.apiBase); localStorage.setItem('sm.useServer',String(config.useServer)); localStorage.setItem('sm.autoplay',String(config.autoplay)); localStorage.setItem('sm.theme',config.theme);
+    closeModal('modal-settings'); toast('Настройки сохранены','ok'); if(config.useServer) loadFromServer();
+  }
+  $('#use-server').addEventListener('change', e=>{config.useServer=e.target.checked; localStorage.setItem('sm.useServer', String(config.useServer)); if(config.useServer) loadFromServer();});
+  $('#btn-clear-local').onclick = async ()=>{ await idbClear(); state.items = state.items.filter(x=>x.origin!=='local'); applyFilters(); toast('Локальные очищены','ok'); };
+  $('#btn-clear-server').onclick = async ()=>{
+    if(!config.useServer) return toast('Сервер выключен','err');
+    if(!confirm('Удалить ВСЕ файлы на сервере и очистить индекс?')) return;
+    try{ const r=await fetch(`${config.apiBase}/api/clear`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wipe:true})}); if(!r.ok) throw 0; state.items=state.items.filter(x=>x.origin!=='server'); applyFilters(); toast('Серверный каталог очищен','ok'); }catch{ toast('Ошибка очистки сервера','err'); }
+  };
+
+  // --------------- details / tags ----------------
+  $('#btn-details').onclick=()=>{
+    const it = currentItem(); if(!it) return toast('Ничего не выбрано','err');
+    $('#details-body').innerHTML = `
+      <div class="grid">
+        <div class="mark">Имя: <b>${it.name||''}</b></div>
+        <div class="mark">Тип: <b>${it.kind||''}</b></div>
+        <div class="mark">Размер: <b>${fmtSize(it.size)||''}</b></div>
+        <div class="mark">Расширение: <b>${it.ext||''}</b></div>
+        <div class="mark">Источник: <b>${it.origin||''}</b></div>
+        <div class="mark">Дата: <b>${new Date(it.mtime||Date.now()).toLocaleString()}</b></div>
+        ${it.stored?`<div class="mark">Stored: <b>${it.stored}</b></div>`:''}
+        <div class="mark">Теги: <b>${(it.tags||[]).join(', ')}</b></div>
+      </div>`;
+    openModal('modal-details');
+  };
+
+  $('#btn-tags').onclick=()=>{
+    const it=currentItem(); if(!it) return toast('Ничего не выбрано','err');
+    const cloud=$('#tags-cloud'); cloud.innerHTML='';
+    (it.tags||[]).forEach(tag=>cloud.appendChild(tagChip(tag)));
+    $('#tag-input').value='';
+    $('#tag-input').onkeydown=e=>{ if(e.key==='Enter'){ const t=e.target.value.trim(); if(!t) return; cloud.appendChild(tagChip(t)); e.target.value=''; } };
+    openModal('modal-tags');
+  };
+  function tagChip(t){ const s=document.createElement('span'); s.className='chip'; s.textContent=t; s.title='Удалить'; s.onclick=()=>s.remove(); return s; }
+  async function saveTags(){
+    const it=currentItem(); if(!it) return;
+    const tags=Array.from($('#tags-cloud').querySelectorAll('.chip')).map(x=>x.textContent);
+    it.tags=tags; await idbPutMany([it]); applyFilters(); closeModal('modal-tags');
+    if(config.useServer && it.origin==='server' && it.stored){
+      try{ await fetch(`${config.apiBase}/api/meta`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stored:it.stored, tags})}); toast('Теги сохранены','ok'); }catch{ toast('Не удалось сохранить теги на сервер','err'); }
+    } else toast('Теги сохранены локально','ok');
+  }
+
+  // --------------- editor ----------------
+  let editor={img:null, angle:0, flip:false, zoom:1, filters:{bright:1,contr:1,sat:1,hue:0,blur:0}};
+  $('#btn-open-editor').onclick=()=> openEditorFromSelected();
+  function currentItem(){ return state.filtered[state.selectedIndex]; }
+
+  async function openEditorFromSelected(){
+    const it=currentItem(); if(!it) return toast('Ничего не выбрано','err');
+    if(it.kind===KINDS.images){ openEditor(it.url); }
+    else if(it.kind===KINDS.video){ try{ const frame=await captureFrameSafe(it.url); openEditor(frame); }catch{ toast('Не удалось снять кадр','err'); } }
+    else toast('Редактор поддерживает фото и кадры из видео','err');
+  }
+  function openEditor(srcUrl){
+    editor={img:new Image(), angle:0, flip:false, zoom:1, filters:{bright:1,contr:1,sat:1,hue:0,blur:0}};
+    const img=editor.img; img.crossOrigin='anonymous'; img.onload=()=>drawCanvas(); img.src=srcUrl;
+    $('#ctl-bright').value=1; $('#ctl-contr').value=1; $('#ctl-sat').value=1; $('#ctl-hue').value=0; $('#ctl-blur').value=0; $('#ctl-zoom').value=1;
+    openModal('modal-editor');
+  }
+  function drawCanvas(){
+    const canvas=$('#canvas'); const ctx=canvas.getContext('2d'); const {img,angle,flip,zoom,filters:{bright,contr,sat,hue,blur}}=editor;
+    if(!img || !img.complete) return; const cw=canvas.width, ch=canvas.height; ctx.clearRect(0,0,cw,ch); ctx.save(); ctx.translate(cw/2,ch/2); ctx.rotate(angle*Math.PI/180); ctx.scale(flip?-1:1,1);
+    ctx.filter=`brightness(${bright}) contrast(${contr}) saturate(${sat}) hue-rotate(${hue}deg) blur(${blur}px)`;
+    const iw=img.width, ih=img.height; const scale=Math.min(cw/iw, ch/ih)*zoom; const dw=iw*scale, dh=ih*scale; ctx.drawImage(img, -dw/2,-dh/2,dw,dh); ctx.restore();
+  }
+  function rotate(d){ editor.angle=(editor.angle+d+360)%360; drawCanvas(); }
+  function flipH(){ editor.flip=!editor.flip; drawCanvas(); }
+  function resetEditor(){ editor.angle=0; editor.flip=false; editor.zoom=1; editor.filters={bright:1,contr:1,sat:1,hue:0,blur:0}; syncSliders(); drawCanvas();}
+  function syncSliders(){ $('#ctl-bright').value=editor.filters.bright; $('#ctl-contr').value=editor.filters.contr; $('#ctl-sat').value=editor.filters.sat; $('#ctl-hue').value=editor.filters.hue; $('#ctl-blur').value=editor.filters.blur; $('#ctl-zoom').value=editor.zoom;}
+  ;['bright','contr','sat','hue','blur'].forEach(k=> $('#ctl-'+(k==='contr'?'contr':k)).addEventListener('input',e=>{editor.filters[k]=(k==='hue'||k==='blur')?parseFloat(e.target.value):+e.target.value; drawCanvas();}));
+  $('#ctl-zoom').addEventListener('input', e=>{editor.zoom=parseFloat(e.target.value); drawCanvas();});
+  function downloadCanvas(){ const a=document.createElement('a'); a.download='image_edited.png'; a.href=$('#canvas').toDataURL('image/png'); a.click(); }
+  function saveCanvasToServer(){
+    if(!config.useServer) return toast('Сервер выключен','err');
+    $('#canvas').toBlob(async blob=>{
+      const fd=new FormData(); fd.append('files', blob, 'edited.png');
+      try{ const r=await fetch(`${config.apiBase}/api/upload`,{method:'POST',body:fd}); if(!r.ok) throw 0; toast('Сохранено на сервер','ok'); loadFromServer(); }catch{ toast('Ошибка сохранения','err'); }
+    },'image/png',0.92);
+  }
+  function captureFrameSafe(url){
+    return new Promise((res,rej)=>{
+      const vid=document.createElement('video'); vid.crossOrigin='anonymous'; vid.src=url; vid.muted=true; vid.playsInline=true;
+      vid.addEventListener('loadedmetadata', ()=>{
+        vid.currentTime = Math.min(1, vid.duration || 1);
+      }, {once:true});
+      vid.addEventListener('seeked', ()=>{
+        const c=document.createElement('canvas'); c.width=960; c.height=540; c.getContext('2d').drawImage(vid,0,0,c.width,c.height); res(c.toDataURL('image/png'));
+      }, {once:true});
+      vid.addEventListener('error', ()=>rej(new Error('video error')), {once:true});
+    });
+  }
+
+  // --------------- player controls / loop / rate ---------------
+  $('#rate').addEventListener('input',()=>{ if(state.playingEl) state.playingEl.playbackRate=parseFloat($('#rate').value||'1'); });
+  function bindABLoop(){ const el=state.playingEl; if(!el) return; el.ontimeupdate=()=>{ if($('#ab-loop').checked && state.aMark!=null && state.bMark!=null){ if(el.currentTime>state.bMark) el.currentTime=state.aMark; } }; }
+  window.addEventListener('keydown',e=>{
+    if(e.key==='/'){ e.preventDefault(); $('#search').focus(); }
+    if(e.key===' '){ if(state.playingEl){ e.preventDefault(); state.playingEl.paused?state.playingEl.play():state.playingEl.pause(); } }
+    if(e.key==='['){ const r=Math.max(0.5,(parseFloat($('#rate').value)-0.05)); $('#rate').value=r; if(state.playingEl) state.playingEl.playbackRate=r; }
+    if(e.key===']'){ const r=Math.min(2,(parseFloat($('#rate').value)+0.05)); $('#rate').value=r; if(state.playingEl) state.playingEl.playbackRate=r; }
+    if(e.key.toLowerCase()==='a'){ if(state.playingEl){ state.aMark=state.playingEl.currentTime; toast('A='+state.aMark.toFixed(2)); } }
+    if(e.key.toLowerCase()==='b'){ if(state.playingEl){ state.bMark=state.playingEl.currentTime; toast('B='+state.bMark.toFixed(2)); } }
+    if(e.key.toLowerCase()==='e'){ openEditorFromSelected(); }
+    if(e.key.toLowerCase()==='i'){ $('#file-input').click(); }
+    if(e.key==='?'){ openModal('modal-shortcuts'); }
+  });
+
+  // --------------- download/delete buttons ---------------
+  $('#btn-download').onclick = ()=>{
+    const it=currentItem(); if(!it) return toast('Ничего не выбрано','err');
+    const name = sanitizeFilename(it.name || 'file');
+    if(it.kind===KINDS.docs && ['txt','md'].includes(it.ext||extOf(name))){
+      // текст лучше через встроенную кнопку в viewer, но оставим тут общий случай
+      downloadUrl(it.url, name);
+    } else {
+      downloadUrl(it.url, name);
+    }
+  };
+
+  $('#btn-delete').onclick = async ()=>{
+    const it=currentItem(); if(!it) return toast('Ничего не выбрано','err');
+    if(it.origin==='server' && it.stored){
+      if(!config.useServer) return toast('Сервер выключен','err');
+      if(!confirm(`Удалить с сервера: ${it.name}?`)) return;
+      try{
+        const r=await fetch(`${config.apiBase}/api/delete`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stored:it.stored})});
+        if(!r.ok) throw 0;
+        // удалить из state + IndexedDB
+        const idx=state.items.findIndex(x=>x===it); if(idx>=0){ state.items.splice(idx,1); }
+        await idbDelete(it.id); applyFilters(); toast('Удалено','ok');
+      }catch{ toast('Ошибка удаления','err'); }
+    } else {
+      if(!confirm(`Убрать локально: ${it.name}?`)) return;
+      URL.revokeObjectURL(it.url); const idx=state.items.findIndex(x=>x===it); if(idx>=0){ state.items.splice(idx,1); }
+      await idbDelete(it.id); applyFilters(); toast('Убрано локально','ok');
+    }
+  };
+
+  // --------------- doc helpers ----------------
+  async function fetchText(url){ try{ const r=await fetch(url); return await r.text(); }catch{return '';} }
+  function downloadText(name,content){ const a=document.createElement('a'), b=new Blob([content],{type:'text/plain;charset=utf-8'}); a.href=URL.createObjectURL(b); a.download=name.endsWith('.txt')?name:`${name}.txt`; a.click(); }
+  async function uploadTextToServer(name,content){
+    if(!config.useServer) return toast('Сервер выключен','err');
+    const fd=new FormData(); fd.append('files', new Blob([content],{type:'text/plain'}), name);
+    try{ const r=await fetch(`${config.apiBase}/api/upload`,{method:'POST',body:fd}); if(!r.ok) throw 0; toast('Текст сохранён на сервер','ok'); loadFromServer(); }catch{ toast('Ошибка сохранения','err');}
+  }
+
+  // --------------- player minibuttons ---------------
+  $('#btn-play').onclick = ()=>{ if(state.playingEl){ state.playingEl.paused?state.playingEl.play():state.playingEl.pause(); } };
+  $('#btn-prev').onclick = ()=>{ if(state.selectedIndex>0) selectItem(state.selectedIndex-1); };
+  $('#btn-next').onclick = ()=>{ if(state.selectedIndex<state.filtered.length-1) selectItem(state.selectedIndex+1); };
+
+  // --------------- init ---------------
+  async function init(){
+    try{ const local=await idbGetAll(); state.items=local; }catch{}
+    $('#use-server').checked=config.useServer;
+    if(config.useServer) await loadFromServer();
+    applyFilters();
+  }
+  $$('.modal-backdrop').forEach(m=> m.addEventListener('mousedown', e=>{if(e.target===m) m.style.display='none';}));
+  init();
+
+  // Навесим закрытие модалок по клику по фону
+  $$('.modal-backdrop').forEach(m=> m.addEventListener('mousedown', e=>{if(e.target===m) m.style.display='none';}));
+
+  // Кнопки «плеера снизу»
+  $('#btn-play').onclick = ()=>{ if(state.playingEl){ state.playingEl.paused?state.playingEl.play():state.playingEl.pause(); } };
+  $('#btn-prev').onclick = ()=>{ if(state.selectedIndex>0) selectItem(state.selectedIndex-1); };
+  $('#btn-next').onclick = ()=>{ if(state.selectedIndex<state.filtered.length-1) selectItem(state.selectedIndex+1); };
+
+  // Готово
+  init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+#dynamic-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  object-fit: cover;
+  z-index: -10;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity .7s;
+}

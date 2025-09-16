@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Студия обоев — Salem Explorer</title>
+  <style>
+    :root{
+      --bg:#0e1116; --panel:#141924; --muted:#9aa4b2;
+      --accent1:#07fff3; --accent2:#ff007c; --accent3:#6e9cff;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1b2233 0%, #0b0f17 50%, #090c12 100%),
+        var(--bg);
+      color:#e8eef6; font:14px/1.45 ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;
+    }
+    a{color:inherit;text-decoration:none}
+
+    .topbar{
+      height:56px; display:flex; align-items:center; justify-content:space-between;
+      padding:0 16px; background:#0b0f17a8; backdrop-filter:blur(8px);
+      border-bottom:1px solid #1b2333;
+    }
+    .brand{font-weight:800; letter-spacing:.3px}
+    .actions{display:flex; gap:8px}
+
+    .btn{
+      height:36px; padding:0 14px; border-radius:10px;
+      border:1px solid #2a3245; background:#182033; color:#e8eef6;
+      cursor:pointer; transition:transform .12s, filter .18s, background .2s, border-color .2s;
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+    .btn:hover{transform:translateY(-1px); filter:saturate(115%)}
+    .btn.primary{
+      background:linear-gradient(90deg,var(--accent1),var(--accent2));
+      border-color:transparent; color:#051015; font-weight:800;
+    }
+    .btn.ghost{background:transparent}
+    .btn.danger{background:#2a0f16; border-color:#522; color:#ffdadd}
+    .btn.warn{background:#2a1c06; border-color:#754f12; color:#ffe7b7}
+
+    .stage{display:grid; grid-template-columns:360px 1fr; gap:14px; padding:14px; height:calc(100vh - 56px)}
+    .panel{
+      background:var(--panel); border:1px solid #1f2736; border-radius:var(--radius);
+      padding:12px; display:flex; flex-direction:column; min-width:300px;
+    }
+    .tabs{display:flex; gap:8px; margin-bottom:10px}
+    .tab{
+      flex:1; height:38px; border:none; border-radius:10px; cursor:pointer; color:#f7fbff; font-weight:800;
+      background:linear-gradient(90deg,var(--accent1),var(--accent2)); opacity:.65; transition:opacity .2s, box-shadow .2s;
+    }
+    .tab.active{opacity:1; box-shadow:0 0 0 2px rgba(255,255,255,.16) inset}
+
+    .tools{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 10px}
+    .filebtn{display:inline-flex; align-items:center; justify-content:center}
+    .filebtn, .tools .btn{padding:0 12px; height:34px; border-radius:10px; background:#1b2233; border:1px solid #2a3245; cursor:pointer}
+
+    .grid{
+      display:grid; gap:10px; grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+      overflow:auto; padding-right:4px;
+    }
+    .card{
+      position:relative; border-radius:12px; overflow:hidden; border:2px solid transparent; cursor:pointer;
+      background:#0e1422; aspect-ratio:16/10; display:grid; place-items:center; transition:transform .12s,border .18s,box-shadow .18s;
+    }
+    .card:hover{transform:translateY(-1px)}
+    .card.selected{border-color:var(--accent2); box-shadow:0 0 16px #07fff380, 0 0 8px #ff007c66}
+    .card img, .card video{width:100%; height:100%; object-fit:cover; display:block; pointer-events:none}
+    .badge{
+      position:absolute; left:6px; bottom:6px; background:#0008; color:#fff; padding:3px 6px; border-radius:8px;
+      font:600 11px/1 ui-sans-serif; backdrop-filter:blur(6px)
+    }
+
+    .preview{
+      background:var(--panel); border:1px solid #1f2736; border-radius:var(--radius);
+      display:flex; flex-direction:column; overflow:hidden
+    }
+    .canvas{
+      position:relative; flex:1; border-bottom:1px solid #1f2736; display:grid; place-items:center;
+      background:radial-gradient(800px 400px at 100% 0%, rgba(7,255,243,.08), transparent 60%),
+                 radial-gradient(800px 400px at 0% 100%, rgba(255,0,124,.08), transparent 60%);
+    }
+    .canvas img, .canvas video{
+      max-width:100%; max-height:100%; display:none; border-radius:12px; box-shadow:0 10px 40px #0009;
+    }
+    .hint{color:var(--muted)}
+    .footer{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px}
+    .current{color:var(--muted)}
+    .note{margin-left:auto; color:#ffc277}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">🖼️ Студия обоев</div>
+      <nav class="actions">
+        <a class="btn ghost" href="http://127.0.0.1:5000/" aria-label="Назад на главную">⟵ На главную</a>
+      </nav>
+    </header>
+
+    <section class="stage">
+      <aside class="panel" aria-label="Выбор обоев">
+        <div class="tabs" role="tablist" aria-label="Тип обоев">
+          <button class="tab active" data-kind="image" role="tab" aria-selected="true">Фото</button>
+          <button class="tab" data-kind="video" role="tab" aria-selected="false">Видео</button>
+        </div>
+
+        <div class="tools">
+          <label class="filebtn" title="Загрузить изображение">
+            <input id="pickImage" type="file" accept="image/*" hidden />
+            Загрузить фото
+          </label>
+          <label class="filebtn" title="Загрузить видео">
+            <input id="pickVideo" type="file" accept="video/mp4,video/webm" hidden />
+            Загрузить видео
+          </label>
+          <button id="resetBtn" class="btn danger" title="Сбросить фон">Сбросить фон</button>
+        </div>
+
+        <div class="grid" id="grid" aria-live="polite"></div>
+      </aside>
+
+      <main class="preview">
+        <div class="canvas" aria-live="polite" aria-atomic="true">
+          <div class="hint" id="hint">Выберите обои слева</div>
+          <img id="prevImg" alt="Предпросмотр изображения" />
+          <video id="prevVid" muted loop playsinline aria-label="Предпросмотр видео"></video>
+        </div>
+
+        <footer class="footer">
+          <div class="current" id="currentInfo">Текущий фон: не выбран</div>
+          <span class="note small" id="warning" style="display:none"></span>
+          <button id="applyBtn" class="btn primary" disabled>Применить</button>
+        </footer>
+      </main>
+    </section>
+  </div>
+
+  <script>
+(() => {
+  const LS_KEY = 'slm.bg'; // {type:'image'|'video', src:'...', name:'...', isDataURL?:bool, ts?:number}
+  const MAX_LS_BYTES = 5 * 1024 * 1024; // ~5MB защитный лимит
+
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+  const grid      = $('#grid');
+  const tabBtns   = $$('.tab');
+  const prevImg   = $('#prevImg');
+  const prevVid   = $('#prevVid');
+  const hint      = $('#hint');
+  const applyBtn  = $('#applyBtn');
+  const resetBtn  = $('#resetBtn');
+  const pickImage = $('#pickImage');
+  const pickVideo = $('#pickVideo');
+  const current   = $('#currentInfo');
+  const warnEl    = $('#warning');
+
+  let selected = null;
+  let currentKind = 'image';
+
+  // Встроенные обои (абсолютные пути, чтобы не ловить 404)
+  const BUILTIN = {
+    image: [
+      {id:'san_Andreas', name:'San Andreas', src:'/static/wallpapers/San-Andreas.jpg', badge:'4K'},
+      {id:'sad_Girl',    name:'Sad Girl',    src:'/static/wallpapers/Sad-Girl.jpg',    badge:'4K'},
+      {id:'piece',       name:'Cyber Grid',  src:'/static/wallpapers/piece.jpg'},
+      {id:'Mountain',    name:'Mountain',    src:'/static/wallpapers/Mountain.jpg'},
+      {id:'game-world',  name:'Game World',  src:'/static/wallpapers/Game-World.jpg'},
+      {id:'art-girl',    name:'Art Girl',    src:'/static/wallpapers/Art-girl.jpg'},
+      {id:'pavlin',      name:'Pavlin',      src:'/static/wallpapers/pavlin.jpg'}
+    ],
+    video: [
+      // при необходимости — добавить заранее подготовленные mp4/webm:
+      // {id:'loop1', name:'Neon Loop', src:'/static/wallpapers/loops/neon.webm'}
+    ]
+  };
+
+  function render(kind='image'){
+    currentKind = kind;
+    grid.innerHTML = '';
+    tabBtns.forEach(b=>{
+      const active = b.dataset.kind===kind;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-selected', String(active));
+    });
+
+    for(const it of (BUILTIN[kind] || [])){
+      const card = document.createElement('button');
+      card.type='button'; card.className='card'; card.title = it.name;
+      if(kind==='image'){
+        const img = document.createElement('img'); img.src = it.src; img.alt = it.name; card.appendChild(img);
+      } else {
+        const v = document.createElement('video'); v.src=it.src; v.muted=true; v.loop=true; v.playsInline=true;
+        v.addEventListener('mouseenter',()=>v.play().catch(()=>{}),{once:true});
+        card.appendChild(v);
+      }
+      if(it.badge){
+        const badge = document.createElement('span'); badge.className='badge'; badge.textContent=it.badge;
+        card.appendChild(badge);
+      }
+      card.addEventListener('click',()=>{
+        $$('.card',grid).forEach(e=>e.classList.remove('selected'));
+        card.classList.add('selected');
+        selected = {type:kind, src:it.src, name:it.name, isDataURL:false};
+        showPreview(selected);
+        warn('');
+        applyBtn.disabled = false;
+      });
+      grid.appendChild(card);
+    }
+  }
+
+  function showPreview(sel){
+    hint.style.display='none';
+    if(sel.type==='image'){
+      prevVid.pause(); prevVid.removeAttribute('src'); prevVid.style.display='none';
+      prevImg.src = sel.src; prevImg.style.display='block';
+    }else{
+      prevImg.style.display='none';
+      prevVid.src = sel.src; prevVid.currentTime = 0; prevVid.style.display='block';
+      prevVid.play().catch(()=>{});
+    }
+  }
+
+  function warn(msg){
+    warnEl.textContent = msg || '';
+    warnEl.style.display = msg ? 'inline' : 'none';
+  }
+
+  // Применить -> сохраняем в localStorage
+  applyBtn.addEventListener('click', ()=>{
+    if(!selected) return;
+    const payload = {...selected, ts: Date.now()};
+    try {
+      const str = JSON.stringify(payload);
+      // быстрая проверка размера (грубо, но полезно)
+      if (str.length > MAX_LS_BYTES && payload.isDataURL) {
+        warn('Файл слишком большой для локального хранилища. Выберите картинку поменьше или используйте встроенные обои.');
+        return;
+      }
+      localStorage.setItem(LS_KEY, str);
+      current.textContent = `Текущий фон: ${selected.name ?? (selected.type==='image'?'Фото':'Видео')}`;
+      applyBtn.disabled = true;
+    } catch (e) {
+      warn('Не удалось сохранить фон. Освободите место в хранилище.');
+    }
+  });
+
+  // Сброс
+  resetBtn.addEventListener('click', ()=>{
+    try { localStorage.removeItem(LS_KEY); } catch {}
+    selected = null;
+    hint.style.display='block';
+    prevImg.style.display='none';
+    prevVid.pause(); prevVid.removeAttribute('src'); prevVid.style.display='none';
+    current.textContent = 'Текущий фон: не выбран';
+    applyBtn.disabled = true;
+    $$('.card',grid).forEach(e=>e.classList.remove('selected'));
+    warn('');
+  });
+
+  // Загрузка своих файлов — читаем как DataURL (живёт между страницами)
+  pickImage.addEventListener('change', e=>{
+    const f = e.target.files?.[0]; if(!f) return;
+    if (f.size > MAX_LS_BYTES) {
+      warn('Изображение слишком большое для localStorage (лимит ~5 МБ).');
+    } else {
+      warn('');
+    }
+    const rdr = new FileReader();
+    rdr.onload = ev => {
+      selected = {type:'image', src:String(ev.target.result), name:f.name, isDataURL:true};
+      showPreview(selected);
+      applyBtn.disabled = false;
+    };
+    rdr.readAsDataURL(f);
+  });
+
+  pickVideo.addEventListener('change', e=>{
+    const f = e.target.files?.[0]; if(!f) return;
+    if (f.size > MAX_LS_BYTES) {
+      warn('Видео слишком большое для localStorage (лимит ~5 МБ). Сохранение может не получиться.');
+    } else {
+      warn('');
+    }
+    const rdr = new FileReader();
+    rdr.onload = ev => {
+      selected = {type:'video', src:String(ev.target.result), name:f.name, isDataURL:true};
+      showPreview(selected);
+      applyBtn.disabled = false;
+    };
+    rdr.readAsDataURL(f);
+  });
+
+  // Табы
+  tabBtns.forEach(b=>b.addEventListener('click',()=>render(b.dataset.kind)));
+
+  // Текущее значение
+  const saved = load();
+  if(saved){
+    current.textContent = `Текущий фон: ${saved.name ?? (saved.type==='image'?'Фото':'Видео')}`;
+    selected = saved; showPreview(saved); applyBtn.disabled = true;
+  }else{
+    current.textContent = 'Текущий фон: не выбран';
+  }
+
+  render('image');
+
+  // Хранилка
+  function load(){
+    try {
+      const v = localStorage.getItem(LS_KEY);
+      return v ? JSON.parse(v) : null;
+    } catch { return null; }
+  }
+})();
+  </script>
+</body>
+</html>

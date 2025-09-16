@@ -1,0 +1,5 @@
+#salem-pip-btn{position:fixed;z-index:2147483647;right:18px;bottom:18px;width:36px;height:36px;border-radius:9px;background:rgba(31,41,55,.9);color:#fff;border:none;font:16px/1 sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;user-select:none;box-shadow:0 8px 20px rgba(0,0,0,.25);transition:transform .08s ease,background .12s ease,box-shadow .2s ease}
+#salem-pip-btn:hover{background:rgba(55,65,81,.95);box-shadow:0 10px 24px rgba(0,0,0,.28)}
+#salem-pip-btn:active{transform:translateY(1px) scale(.98)}
+#salem-pip-btn[data-active="1"]{background:#22d3ee;color:#091017;box-shadow:0 8px 20px rgba(34,211,238,.35)}
+#salem-pip-btn[data-active="1"]:hover{background:#1bc2db;box-shadow:0 10px 24px rgba(34,211,238,.45)}

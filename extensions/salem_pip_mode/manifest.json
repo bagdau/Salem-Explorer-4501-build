@@ -1,0 +1,13 @@
+{
+  "name": "Salem PIP Mode",
+  "enabled": true,
+  "world": "application",
+  "content_scripts": [
+    {
+    "matches": ["*://*/*"],
+    "js": ["pip.js"],
+    "css": ["pip.css"],
+    "run_at": "document_idle"
+    }
+  ]
+}

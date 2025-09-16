@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Salem CleanStream",
+  "description": "Блокировка рекламы и умный «скип» видеорекламы. Работает в Chrome/Edge и Salem Explorer 4.5.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "110",
+  "icons": {
+    "16": "Assets/logo.png",
+    "32": "Assets/logo.png",
+    "48": "Assets/logo.png",
+    "128": "Assets/logo.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "Assets/logo.png",
+      "32": "Assets/logo.png",
+      "48": "Assets/logo.png",
+      "128": "Assets/logo.png"
+    }
+  },
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "storage",
+    "tabs",
+    "scripting",
+    "webRequest"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "js/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["js/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "toggle-enabled": {
+      "suggested_key": { "default": "Alt+Shift+A" },
+      "description": "Вкл/выкл CleanStream"
+    }
+  }
+}
