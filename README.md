@@ -51,7 +51,7 @@
 
 ### 1) Клонирование
 ```bash
-git clone https://github.com/<org>/<repo>.git
+git clone https://github.com/bagdau/Salem-Explorer-4501-build.git
 cd <repo>
 ```
 
@@ -80,31 +80,310 @@ python src/launcher.py  # или python -m salem.launcher
 ## Структура репозитория
 ```
 <repo>/
-├─ src/
-│  ├─ salem/                # Пакет приложения
-│  │  ├─ __init__.py
-│  │  ├─ main_window.py     # Основное окно (QMainWindow/QWebEngineView)
-│  │  ├─ browser.py         # Логика вкладок/профилей/настроек
-│  │  ├─ devtools.py        # Встраиваемые DevTools/панели
-│  │  ├─ services/
-│  │  │  ├─ mediahub.py     # Локальный медиасервис и маршруты
-│  │  │  └─ ...
-│  │  ├─ api/
-│  │  │  ├─ routes.py       # Внутренние API‑маршруты
-│  │  │  └─ schema.py
-│  │  └─ utils/
-│  │     ├─ settings.py     # Загрузка/валидация конфигурации
-│  │     └─ logging.py      # Настройка логирования
-│  ├─ launcher.py           # Лаунчер, проверки окружения, старт браузера
-│  └─ __main__.py
-├─ assets/                  # Иконки, шрифты, статические файлы
-├─ build/                   # Скрипты сборки/спеки PyInstaller
-├─ installers/              # Скрипты Inno Setup/NSIS (Windows)
-├─ tests/                   # Тесты (опционально)
-├─ requirements.txt
-├─ requirements-dev.txt
+│   enabled_extensions.json
+│   file_version_info.txt
+│   freeze.txt
+│   history_data.json
+│   launcher.py
+│   qtwebengine_env.py
+│   README.md
+│   requirements.txt
+│   Salem.py
 ├─ LICENSE
 └─ README.md
+│
+├───extensions
+│   │   enabled_extensions.json
+│   │   salem_pip_mode.zip
+│   │   video-booster.zip
+│   │
+│   ├───salem_pip_mode
+│   │   │   manifest.json
+│   │   │   README.md
+│   │   │
+│   │   ├───css
+│   │   │       pip.css
+│   │   │
+│   │   ├───icons
+│   │   │       pip.svg
+│   │   │
+│   │   └───js
+│   │           pip.js
+│   │
+│   └───video-booster
+│       │   manifest.json
+│       │   popup.html
+│       │   README.md
+│       │
+│       ├───assets
+│       │       video-booster.png
+│       │
+│       ├───css
+│       │       popup.css
+│       │
+│       └───js
+│               background.js
+│               content.js
+│               popup.js
+│               service-worker.js
+│
+├───img
+│   │   600px-Logo_of_Kaspi_bank.png
+│   │   dominik-schroder-FIKD9t5_5zQ-unsplash.jpg
+│   │   Egov.png
+│   │   GreenField.jpg
+│   │   GreenField.jpg.jpg
+│   │   icon2.ico
+│   │   icons8-chatgpt-192.png
+│   │   icons8-discord-100.png
+│   │   icons8-facebook-144.png
+│   │   icons8-google-96.png
+│   │   icons8-instagram-144.png
+│   │   icons8-tiktok-240.png
+│   │   icons8-user-icon-96 (1).png
+│   │   icons8-user-icon-96.png
+│   │   icons8-web-design-96.png
+│   │   icons8-youtube-500.png
+│   │   MinPhoto.png
+│   │
+│   └───icons
+│           app-window.svg
+│           arrow-badge-left.svg
+│           arrow-badge-right.svg
+│           arrow-bar-to-left.svg
+│           arrow-big-left.svg
+│           arrow-big-right-line.svg
+│           assembly.svg
+│           badge.svg
+│           book.svg
+│           bookmark.svg
+│           box-multiple.svg
+│           box.svg
+│           brand-google.svg
+│           brand-wikipedia.svg
+│           brand-youtube.svg
+│           brightness (1).svg
+│           brightness.svg
+│           calculator.svg
+│           camera.svg
+│           capture.svg
+│           chevron-left.svg
+│           chevron-right.svg
+│           circle-arrow-left.svg
+│           circle-arrow-right.svg
+│           DES.ico
+│           download.svg
+│           file-description.svg
+│           folder.svg
+│           history.svg
+│           home.svg
+│           icon.ico
+│           icon2.jpg
+│           image.png
+│           loader.gif
+│           menu.svg
+│           new-tab.svg
+│           pip.svg
+│           plus.svg
+│           preloader.gif
+│           puzzle.svg
+│           refresh.svg
+│           SalemLogo235.ico
+│           user.svg
+│
+├───js
+│       background.js
+│       handleControl.js
+│       news-block.js
+│       notificaton.js
+│       ScreenAutomator.js
+│       script.js
+│       UserAccount.js
+│       weatherActual.js
+│       weatherNotify.js
+│
+├───launcher_plugins
+│   │   loader.py
+│   │
+│   ├───preload_core
+│   │   │   manifest.json
+│   │   │   plugin.py
+│   │   │
+│   │   └───__pycache__
+│   │           plugin.cpython-310.pyc
+│   │
+│   └───preload_media
+│       │   manifest.json
+│       │   plugin.py
+│       │
+│       └───__pycache__
+│               plugin.cpython-310.pyc
+│
+├───MediaHub
+│   │   mediahub_server.py
+│   │   requirements.txt
+│   │   SalemMedia.html
+│   │
+│   ├───IconsStartPage
+│   │       bookmarks.png
+│   │       calendar.png
+│   │       gmail.png
+│   │       music.png
+│   │       news.png
+│   │       settings.png
+│   │       uploads.png
+│   │       weather.png
+│   │       youtube.png
+│   │
+│   ├───media
+│   └───static
+│       ├───css
+│       │       mediahub.css
+│       │
+│       └───js
+│               mediahub_client.js
+│
+├───mods
+│       load_order.json
+│
+├───modules
+│   │   AccountBridge.py
+│   │   bookmarks.py
+│   │   bookmarks_ui.py
+│   │   downloads_ui.py
+│   │   extensions_loader.py
+│   │   extensions_popup.py
+│   │   extensions_ui.py
+│   │   history_ui.py
+│   │   mods_loader.py
+│   │   mods_ui.py
+│   │   Optimizer.py
+│   │   pip_mode.py
+│   │   pip_native.py
+│   │   salem_sidebar.py
+│   │   toggle_downloads_panel.py
+│   │   user_accounts_ui.py
+│   │   user_account_ui.py
+│   │   __init__.py
+│   │
+│   └───icons
+│           addons.png
+│           bookmarks.png
+│           broom.png
+│           colors.png
+│           download.png
+│           fonts.png
+│           history.png
+│           history.svg
+│           home.png
+│           layers-subtrack.png
+│           layers-subtract.svg
+│           lock.png
+│           lock.svg
+│           mediaplayer.svg
+│           menu.svg
+│           modes.svg
+│           moon.png
+│           offline.svg
+│           online.svg
+│           player.svg
+│           power.png
+│           power.svg
+│           print.svg
+│           profile.png
+│           restart.png
+│           save.png
+│           save.svg
+│           settings.png
+│           settings.svg
+│           spy.svg
+│           sun.png
+│           Trash.png
+│           volume-off.png
+│           volume-on.svg
+│           x.svg
+│           zoom.svg
+│           zoom1.svg
+│
+├───news_proxy
+│   │   404Error.html
+│   │   500Error.html
+│   │   503Error.html
+│   │   account.db
+│   │   account_api.py
+│   │   clock.html
+│   │   index.html
+│   │   Mail_server.py
+│   │   newsapi.key
+│   │   NEWSAPI_KEY.txt
+│   │   news_section.html
+│   │   server.py
+│   │   wallpapers.html
+│   │   __init__.py
+│   │
+│   ├───IconsStartPage
+│   │       bookmarks.png
+│   │       calendar.png
+│   │       gmail.png
+│   │       music.png
+│   │       news.png
+│   │       settings.png
+│   │       uploads.png
+│   │       weather.png
+│   │       youtube.png
+│   │
+│   ├───img
+│   │       default.jpg
+│   │       icon2.jpg
+│   │       icons8-user-icon-96 (1).png
+│   │       Okak.jpg
+│   │
+│   └───static
+│       │   Account.html
+│       │   account.js
+│       │   account_ui.css
+│       │   autoplay_iframe_plugin.js
+│       │   ChangeWallpaper.css
+│       │   ChangeWallpaper.js
+│       │   clock.js
+│       │   main.css
+│       │   main.js
+│       │   modalWindow.js
+│       │   script.js
+│       │   searchSystem.js
+│       │   styles.css
+│       │
+│       ├───api
+│       │   │   htaccess
+│       │   │   login.php
+│       │   │   logout.php
+│       │   │   profile.php
+│       │   │   register.php
+│       │   │   update_profile.php
+│       │   │   upload_avatar.php
+│       │   │   _bootstrap.php
+│       │   │
+│       │   └───htaccess.tmp.news_proxy
+│       │       └───static
+│       │           └───api
+│       ├───avatars
+│       ├───img
+│       │       Salem.png
+│       │
+│       ├───uploads
+│       └───wallpapers
+├───rthooks
+│   │   hook-urllib3.py
+│   │   hook_salem_env.py
+│   │
+│   └───__pycache__
+│           hook-urllib3.cpython-310.pyc
+│
+├───tools
+│       build_manifest.py
+│
+└───utils
+        asset_path.py
 ```
 
 ## Конфигурация
@@ -137,7 +416,7 @@ POST /api/logs/collect
 pip install pyinstaller
 pyinstaller -y \
   --name "salem-explorer" \
-  --icon assets/icons/app.ico \
+  --icon assets/icons/icon2.ico \
   --add-data "assets;assets" \
   --hidden-import "PyQt5.sip" \
   --hidden-import "PyQt5.QtWebEngineWidgets" \
